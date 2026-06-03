@@ -100,7 +100,7 @@ function detectInstagramType(url, metadata) {
   const source = String(metadata?.webpage_url || metadata?.original_url || url || "").toLowerCase();
 
   if (source.includes("/stories/")) {
-    return "story";
+    return metadata?.thumbnail ? "story_photo" : "story";
   }
 
   if (source.includes("/reel/") || source.includes("/reels/")) {
@@ -134,7 +134,8 @@ function pickBestVideoUrl(item) {
 }
 
 function buildYtDlpDownloads(metadata) {
-  return getItems(metadata)
+  const items = getItems(metadata);
+  const downloads = items
     .map((item, index) => {
       const url = pickBestVideoUrl(item);
 
@@ -149,6 +150,16 @@ function buildYtDlpDownloads(metadata) {
       };
     })
     .filter(Boolean);
+
+  if (metadata?.thumbnail && detectInstagramType("", metadata) === "story_photo") {
+    downloads.unshift({
+      label: "JPG / STORY IMAGE 1",
+      url: metadata.thumbnail,
+      format: "jpg"
+    });
+  }
+
+  return downloads;
 }
 
 async function fetchYtDlpMetadata(url, cookiesPath) {

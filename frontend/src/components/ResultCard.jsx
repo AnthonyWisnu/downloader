@@ -17,6 +17,10 @@ function getPreviewDownload(downloads) {
   return downloads.find(isVideoDownload) || null;
 }
 
+function hasImagePreviewType(type) {
+  return ["slideshow", "photo", "carousel", "story_photo"].includes(type);
+}
+
 function isAudioDownload(download) {
   const format = String(download?.format || "").toLowerCase();
   const label = String(download?.label || "").toLowerCase();
@@ -73,8 +77,10 @@ function ResultCard({ result }) {
   const type = typeLabel(result.type);
   const downloads = Array.isArray(result.downloads) ? result.downloads : [];
   const previewDownload = getPreviewDownload(downloads);
-  const slideshowDownloads = result.type === "slideshow" ? downloads.filter(isImageDownload) : [];
-  const hasSlideshowPreview = slideshowDownloads.length > 0;
+  const imagePreviewDownloads = hasImagePreviewType(result.type)
+    ? downloads.filter(isImageDownload)
+    : [];
+  const hasImagePreview = imagePreviewDownloads.length > 0;
   const mediaClassName = getMediaClassName(result);
 
   return (
@@ -87,7 +93,7 @@ function ResultCard({ result }) {
 
       <div className="result-separator" />
 
-      {!hasSlideshowPreview && (previewDownload || hasThumbnail) ? (
+      {!hasImagePreview && (previewDownload || hasThumbnail) ? (
         <div className={mediaClassName}>
           {previewDownload ? (
             <button
@@ -117,8 +123,8 @@ function ResultCard({ result }) {
 
       <div className="result-separator" />
 
-      {hasSlideshowPreview ? (
-        <SlideshowPreview slides={slideshowDownloads} />
+      {hasImagePreview ? (
+        <SlideshowPreview slides={imagePreviewDownloads} />
       ) : null}
 
       <div className="download-list">

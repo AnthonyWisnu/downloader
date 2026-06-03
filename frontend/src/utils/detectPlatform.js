@@ -25,7 +25,7 @@ export function platformLabel(platform, type) {
     return "TIKTOK";
   }
 
-  if (platform === "instagram" && type === "story") {
+  if (platform === "instagram" && (type === "story" || type === "story_photo")) {
     return "INSTAGRAM STORY";
   }
 
@@ -43,6 +43,9 @@ export function typeLabel(type) {
     slideshow: "SLIDESHOW",
     reels: "REELS",
     story: "STORY",
+    story_photo: "STORY PHOTO",
+    photo: "PHOTO",
+    carousel: "CAROUSEL",
     image: "IMAGE"
   };
 
