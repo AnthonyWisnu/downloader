@@ -50,31 +50,45 @@ async function ensurePreviewFile(url) {
     throw new Error(cookies.error);
   }
 
-  const tempOutput = `${outputPath}.part`;
+  const tempBase = outputPath.replace(/\.mp4$/, "");
+  const tempOutput = `${tempBase}.%(ext)s`;
+  const candidatePaths = [
+    `${tempBase}.mp4`,
+    `${tempBase}.mkv`,
+    `${tempBase}.webm`
+  ];
 
-  if (fs.existsSync(tempOutput)) {
-    fs.rmSync(tempOutput, { force: true });
+  candidatePaths.forEach((candidatePath) => {
+    if (fs.existsSync(candidatePath)) {
+      fs.rmSync(candidatePath, { force: true });
+    }
+  });
+
+  try {
+    await runYtDlp([
+      "--cookies",
+      cookies.path,
+      "--no-warnings",
+      "--no-playlist",
+      "--format",
+      PREVIEW_FORMAT,
+      "--merge-output-format",
+      "mp4",
+      "--output",
+      tempOutput,
+      url
+    ]);
+  } catch (error) {
+    throw new Error(error.stderr || error.message || "yt-dlp gagal membuat preview");
   }
 
-  await runYtDlp([
-    "--cookies",
-    cookies.path,
-    "--no-warnings",
-    "--no-playlist",
-    "--format",
-    PREVIEW_FORMAT,
-    "--merge-output-format",
-    "mp4",
-    "--output",
-    tempOutput,
-    url
-  ]);
+  const mergedPath = candidatePaths.find((candidatePath) => fs.existsSync(candidatePath));
 
-  if (!fs.existsSync(tempOutput)) {
+  if (!mergedPath) {
     throw new Error("Preview tidak dapat dibuat");
   }
 
-  fs.renameSync(tempOutput, outputPath);
+  fs.renameSync(mergedPath, outputPath);
   return outputPath;
 }
 

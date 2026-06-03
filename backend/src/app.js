@@ -40,7 +40,8 @@ app.use((error, req, res, next) => {
 });
 
 if (require.main === module) {
-  app.listen(port);
+  const server = app.listen(port);
+  server.timeout = 300000;
 }
 
 module.exports = app;
