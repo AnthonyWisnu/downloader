@@ -1,0 +1,4 @@
+backend/cookies/ig_cookies.txt
+backend/.env
+node_modules/
+dist/
