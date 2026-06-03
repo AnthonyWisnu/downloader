@@ -49,6 +49,18 @@ function isVideoFormat(format) {
   return format.ext === "mp4" || String(format.url).includes(".mp4");
 }
 
+function hasAudio(format) {
+  return Boolean(format?.acodec && format.acodec !== "none");
+}
+
+function hasVideo(format) {
+  return Boolean(format?.vcodec && format.vcodec !== "none");
+}
+
+function isPlayableVideoFormat(format) {
+  return isVideoFormat(format) && hasAudio(format) && hasVideo(format);
+}
+
 function isImageFormat(format) {
   if (!format || !isHttpUrl(format.url)) {
     return false;
@@ -89,9 +101,7 @@ function getDirectMedia(entry) {
     };
   }
 
-  const requestedFormat = Array.isArray(entry.requested_formats)
-    ? entry.requested_formats.find(isVideoFormat)
-    : null;
+  const requestedFormat = pickBestFormat(entry.requested_formats, isPlayableVideoFormat);
 
   if (requestedFormat) {
     return {
@@ -101,7 +111,9 @@ function getDirectMedia(entry) {
     };
   }
 
-  const videoFormat = pickBestFormat(entry.formats, isVideoFormat);
+  const videoFormat =
+    pickBestFormat(entry.formats, isPlayableVideoFormat) ||
+    pickBestFormat(entry.formats, isVideoFormat);
 
   if (videoFormat) {
     return {
@@ -197,7 +209,7 @@ async function downloadInstagram(url) {
     "--no-warnings",
     "--no-playlist",
     "--format",
-    "best[ext=mp4]/best",
+    "best[ext=mp4][acodec!=none][vcodec!=none]/best[acodec!=none][vcodec!=none]/best[ext=mp4]/best",
     url
   ]);
 
