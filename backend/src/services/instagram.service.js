@@ -100,7 +100,7 @@ function detectInstagramType(url, metadata) {
   const source = String(metadata?.webpage_url || metadata?.original_url || url || "").toLowerCase();
 
   if (source.includes("/stories/")) {
-    return metadata?.thumbnail ? "story_photo" : "story";
+    return "story";
   }
 
   if (source.includes("/reel/") || source.includes("/reels/")) {
@@ -151,7 +151,7 @@ function buildYtDlpDownloads(metadata) {
     })
     .filter(Boolean);
 
-  if (metadata?.thumbnail && detectInstagramType("", metadata) === "story_photo") {
+  if (metadata?.thumbnail && detectInstagramType("", metadata) === "story") {
     downloads.unshift({
       label: "JPG / STORY IMAGE 1",
       url: metadata.thumbnail,
