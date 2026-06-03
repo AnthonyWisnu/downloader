@@ -420,11 +420,12 @@ a {
 
 .slideshow-nav {
   position: absolute;
-  top: var(--space-sm);
+  top: 50%;
   left: var(--space-sm);
   right: var(--space-sm);
   display: flex;
   justify-content: space-between;
+  transform: translateY(-50%);
   pointer-events: none;
 }
 

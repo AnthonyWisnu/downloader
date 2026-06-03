@@ -31,10 +31,10 @@ function App() {
       {!downloader.isLoading ? <ResultCard result={downloader.result} /> : null}
 
       <div className="section-separator" />
-      <WhyVoid />
+      <HowItWorks />
 
       <div className="section-separator" />
-      <HowItWorks />
+      <WhyVoid />
 
       <div className="section-separator" />
 
