@@ -1,8 +1,51 @@
+import { useState } from "react";
 import DownloadButton from "./DownloadButton";
 import PlatformBadge from "./PlatformBadge";
 import { typeLabel } from "../utils/detectPlatform";
 
+function isVideoDownload(download) {
+  const format = String(download?.format || "").toLowerCase();
+  const label = String(download?.label || "").toLowerCase();
+
+  return format === "mp4" || label.includes("video");
+}
+
+function getPreviewDownload(downloads) {
+  return downloads.find(isVideoDownload) || null;
+}
+
+function getMediaClassName(result) {
+  const portraitTypes = new Set(["video", "reels", "story"]);
+  const isPortrait = result.platform === "tiktok" || portraitTypes.has(result.type);
+
+  return isPortrait ? "media-preview is-portrait" : "media-preview";
+}
+
+function PreviewModal({ previewDownload, result, onClose }) {
+  return (
+    <div className="preview-modal" role="dialog" aria-modal="true" aria-label="Video preview">
+      <div className="preview-modal-panel">
+        <button className="preview-close" type="button" onClick={onClose}>
+          [ CLOSE ]
+        </button>
+
+        <video
+          className="preview-modal-video"
+          src={previewDownload.url}
+          poster={result.thumbnail || ""}
+          controls
+          autoPlay
+          preload="metadata"
+          playsInline
+        />
+      </div>
+    </div>
+  );
+}
+
 function ResultCard({ result }) {
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
   if (!result) {
     return null;
   }
@@ -10,6 +53,8 @@ function ResultCard({ result }) {
   const hasThumbnail = Boolean(result.thumbnail);
   const type = typeLabel(result.type);
   const downloads = Array.isArray(result.downloads) ? result.downloads : [];
+  const previewDownload = getPreviewDownload(downloads);
+  const mediaClassName = getMediaClassName(result);
 
   return (
     <section className="result-card" aria-label="Download result">
@@ -21,9 +66,27 @@ function ResultCard({ result }) {
 
       <div className="result-separator" />
 
-      {hasThumbnail ? (
-        <div className="thumbnail-frame">
-          <img className="thumbnail-image" src={result.thumbnail} alt="" loading="lazy" />
+      {previewDownload || hasThumbnail ? (
+        <div className={mediaClassName}>
+          {previewDownload ? (
+            <button
+              className="media-preview-button"
+              type="button"
+              onClick={() => setIsPreviewOpen(true)}
+            >
+              <video
+                className="media-video"
+                src={previewDownload.url}
+                poster={result.thumbnail || ""}
+                muted
+                preload="metadata"
+                playsInline
+              />
+              <span className="media-preview-label">[ PREVIEW ]</span>
+            </button>
+          ) : (
+            <img className="media-image" src={result.thumbnail} alt="" loading="lazy" />
+          )}
         </div>
       ) : null}
 
@@ -41,6 +104,14 @@ function ResultCard({ result }) {
           />
         ))}
       </div>
+
+      {isPreviewOpen && previewDownload ? (
+        <PreviewModal
+          previewDownload={previewDownload}
+          result={result}
+          onClose={() => setIsPreviewOpen(false)}
+        />
+      ) : null}
     </section>
   );
 }

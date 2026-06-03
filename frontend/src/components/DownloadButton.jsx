@@ -25,6 +25,7 @@ function DownloadButton({ download }) {
         href={href}
         target="_blank"
         rel="noreferrer"
+        download
         aria-disabled={isDisabled}
       >
         [ DOWNLOAD ]

@@ -1,3 +1,5 @@
+import FeatureSection from "./components/FeatureSection";
+import HowToSection from "./components/HowToSection";
 import LoadingSpinner from "./components/LoadingSpinner";
 import ResultCard from "./components/ResultCard";
 import UrlInput from "./components/UrlInput";
@@ -27,6 +29,9 @@ function App() {
 
       {downloader.isLoading ? <LoadingSpinner /> : null}
       {!downloader.isLoading ? <ResultCard result={downloader.result} /> : null}
+
+      <HowToSection />
+      <FeatureSection />
 
       <footer className="app-footer">
         <span>VOID v1.0.0</span>
