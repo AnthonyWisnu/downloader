@@ -2,6 +2,7 @@ import { useState } from "react";
 import DownloadButton from "./DownloadButton";
 import PlatformBadge from "./PlatformBadge";
 import { typeLabel } from "../utils/detectPlatform";
+import { getMediaUrl } from "../utils/mediaProxy";
 
 function isVideoDownload(download) {
   const format = String(download?.format || "").toLowerCase();
@@ -31,7 +32,7 @@ function PreviewModal({ previewDownload, result, onClose }) {
 
         <video
           className="preview-modal-video"
-          src={previewDownload.url}
+          src={getMediaUrl(previewDownload.url)}
           poster={result.thumbnail || ""}
           controls
           autoPlay
@@ -76,7 +77,7 @@ function ResultCard({ result }) {
             >
               <video
                 className="media-video"
-                src={previewDownload.url}
+                src={getMediaUrl(previewDownload.url)}
                 poster={result.thumbnail || ""}
                 muted
                 preload="metadata"

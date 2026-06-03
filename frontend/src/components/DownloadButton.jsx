@@ -1,3 +1,5 @@
+import { getMediaUrl } from "../utils/mediaProxy";
+
 function formatLabel(download) {
   const format = String(download?.format || "file").toUpperCase();
   const label = String(download?.label || "Download");
@@ -11,7 +13,7 @@ function formatLabel(download) {
 
 function DownloadButton({ download }) {
   const label = formatLabel(download);
-  const href = download?.url || "#";
+  const href = download?.url ? getMediaUrl(download.url, { download: true }) : "#";
   const isDisabled = !download?.url;
 
   return (
