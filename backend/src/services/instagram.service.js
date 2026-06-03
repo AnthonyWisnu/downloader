@@ -6,6 +6,8 @@ function runYtDlp(args) {
     execFile("yt-dlp", args, { maxBuffer: 1024 * 1024 * 8 }, (error, stdout, stderr) => {
       if (error) {
         error.stderr = stderr;
+        error.stdout = stdout;
+        error.isYtDlpError = true;
         reject(error);
         return;
       }
@@ -13,6 +15,46 @@ function runYtDlp(args) {
       resolve(stdout);
     });
   });
+}
+
+function createInstagramError(message, statusCode = 502) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+}
+
+function normalizeInstagramError(error) {
+  const rawMessage = [
+    error?.stderr,
+    error?.stdout,
+    error?.message
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const normalized = rawMessage.toLowerCase();
+
+  if (normalized.includes("no video formats found")) {
+    return createInstagramError("ERR: Format konten tidak didukung");
+  }
+
+  if (normalized.includes("http error 404")) {
+    return createInstagramError("ERR: Konten tidak ditemukan atau sudah dihapus", 404);
+  }
+
+  if (normalized.includes("login required")) {
+    return createInstagramError("ERR: Konten membutuhkan autentikasi", 401);
+  }
+
+  if (
+    normalized.includes("metadata instagram kosong") ||
+    normalized.includes("metadata kosong") ||
+    normalized.includes("output json kosong") ||
+    normalized.includes("unexpected end of json input")
+  ) {
+    return createInstagramError("ERR: Gagal mengambil metadata, coba lagi");
+  }
+
+  return createInstagramError("ERR: Gagal memproses URL Instagram");
 }
 
 function detectInstagramType(metadata) {
@@ -35,6 +77,10 @@ function detectInstagramType(metadata) {
 
 function isHttpUrl(value) {
   return typeof value === "string" && /^https?:\/\//i.test(value);
+}
+
+function isImageExt(ext) {
+  return ["jpg", "jpeg", "webp", "png"].includes(String(ext || "").toLowerCase());
 }
 
 function isVideoFormat(format) {
@@ -66,7 +112,7 @@ function isImageFormat(format) {
     return false;
   }
 
-  return ["jpg", "jpeg", "webp", "png"].includes(format.ext);
+  return isImageExt(format.ext);
 }
 
 function getFormatScore(format) {
@@ -88,7 +134,67 @@ function pickBestFormat(formats, predicate) {
     .sort((left, right) => getFormatScore(right) - getFormatScore(left))[0] || null;
 }
 
+function getDirectImageMedia(entry) {
+  if (isHttpUrl(entry.url) && isImageExt(entry.ext)) {
+    return {
+      url: entry.url,
+      format: entry.ext,
+      kind: "Image"
+    };
+  }
+
+  const imageFormat = pickBestFormat(entry.formats, isImageFormat);
+
+  if (imageFormat) {
+    return {
+      url: imageFormat.url,
+      format: imageFormat.ext || "jpg",
+      kind: "Image"
+    };
+  }
+
+  if (isHttpUrl(entry.thumbnail) && isImageExt(entry.ext)) {
+    return {
+      url: entry.thumbnail,
+      format: entry.ext || "jpg",
+      kind: "Image"
+    };
+  }
+
+  return null;
+}
+
+function isImageEntry(entry) {
+  if (!entry) {
+    return false;
+  }
+
+  if (isImageExt(entry.ext)) {
+    return true;
+  }
+
+  return Boolean(getDirectImageMedia(entry));
+}
+
+function isImageContent(metadata) {
+  if (isImageEntry(metadata)) {
+    return true;
+  }
+
+  if (!Array.isArray(metadata.entries) || metadata.entries.length === 0) {
+    return false;
+  }
+
+  return metadata.entries.some(isImageEntry);
+}
+
 function getDirectMedia(entry) {
+  const directImage = getDirectImageMedia(entry);
+
+  if (directImage) {
+    return directImage;
+  }
+
   const selectedDownload = Array.isArray(entry.requested_downloads)
     ? entry.requested_downloads.find((download) => isHttpUrl(download.url))
     : null;
@@ -190,7 +296,38 @@ function parseYtDlpJson(output) {
     throw new Error("Metadata Instagram kosong");
   }
 
-  return JSON.parse(lines[lines.length - 1]);
+  try {
+    return JSON.parse(lines[lines.length - 1]);
+  } catch (error) {
+    throw new Error("Output JSON kosong");
+  }
+}
+
+async function getInstagramMetadata(url, cookiesPath) {
+  const output = await runYtDlp([
+    "--cookies",
+    cookiesPath,
+    "--dump-single-json",
+    "--no-warnings",
+    url
+  ]);
+
+  return parseYtDlpJson(output);
+}
+
+async function getInstagramVideoMetadata(url, cookiesPath) {
+  const output = await runYtDlp([
+    "--cookies",
+    cookiesPath,
+    "--dump-json",
+    "--no-warnings",
+    "--no-playlist",
+    "--format",
+    "best[ext=mp4][acodec!=none][vcodec!=none]/best[acodec!=none][vcodec!=none]/best[ext=mp4]/best",
+    url
+  ]);
+
+  return parseYtDlpJson(output);
 }
 
 async function downloadInstagram(url) {
@@ -202,33 +339,29 @@ async function downloadInstagram(url) {
     throw error;
   }
 
-  const output = await runYtDlp([
-    "--cookies",
-    cookies.path,
-    "--dump-json",
-    "--no-warnings",
-    "--no-playlist",
-    "--format",
-    "best[ext=mp4][acodec!=none][vcodec!=none]/best[acodec!=none][vcodec!=none]/best[ext=mp4]/best",
-    url
-  ]);
+  try {
+    const initialMetadata = await getInstagramMetadata(url, cookies.path);
+    const metadata = isImageContent(initialMetadata)
+      ? initialMetadata
+      : await getInstagramVideoMetadata(url, cookies.path);
+    const downloads = buildDownloads(metadata);
 
-  const metadata = parseYtDlpJson(output);
-  const downloads = buildDownloads(metadata);
+    if (downloads.length === 0) {
+      throw new Error("No video formats found");
+    }
 
-  if (downloads.length === 0) {
-    throw new Error("URL tidak valid atau konten tidak dapat diakses");
+    return {
+      platform: "instagram",
+      type: detectInstagramType(metadata),
+      title: metadata.title || metadata.description || "Instagram content",
+      thumbnail: metadata.thumbnail || "",
+      sourceUrl: url,
+      previewUrl: `/api/preview?url=${encodeURIComponent(url)}`,
+      downloads
+    };
+  } catch (error) {
+    throw normalizeInstagramError(error);
   }
-
-  return {
-    platform: "instagram",
-    type: detectInstagramType(metadata),
-    title: metadata.title || metadata.description || "Instagram content",
-    thumbnail: metadata.thumbnail || "",
-    sourceUrl: url,
-    previewUrl: `/api/preview?url=${encodeURIComponent(url)}`,
-    downloads
-  };
 }
 
 module.exports = {

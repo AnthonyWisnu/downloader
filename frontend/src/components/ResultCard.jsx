@@ -1,6 +1,8 @@
 import { useState } from "react";
+import AudioPreview from "./AudioPreview";
 import DownloadButton from "./DownloadButton";
 import PlatformBadge from "./PlatformBadge";
+import SlideshowPreview from "./SlideshowPreview";
 import { typeLabel } from "../utils/detectPlatform";
 import { getMediaUrl } from "../utils/mediaProxy";
 
@@ -13,6 +15,20 @@ function isVideoDownload(download) {
 
 function getPreviewDownload(downloads) {
   return downloads.find(isVideoDownload) || null;
+}
+
+function isAudioDownload(download) {
+  const format = String(download?.format || "").toLowerCase();
+  const label = String(download?.label || "").toLowerCase();
+
+  return format === "mp3" || label.includes("audio");
+}
+
+function isImageDownload(download) {
+  const format = String(download?.format || "").toLowerCase();
+  const label = String(download?.label || "").toLowerCase();
+
+  return ["jpg", "jpeg", "png", "webp"].includes(format) || label.includes("image");
 }
 
 function getMediaClassName(result) {
@@ -57,6 +73,8 @@ function ResultCard({ result }) {
   const type = typeLabel(result.type);
   const downloads = Array.isArray(result.downloads) ? result.downloads : [];
   const previewDownload = getPreviewDownload(downloads);
+  const slideshowDownloads = result.type === "slideshow" ? downloads.filter(isImageDownload) : [];
+  const hasSlideshowPreview = slideshowDownloads.length > 0;
   const mediaClassName = getMediaClassName(result);
 
   return (
@@ -69,7 +87,7 @@ function ResultCard({ result }) {
 
       <div className="result-separator" />
 
-      {previewDownload || hasThumbnail ? (
+      {!hasSlideshowPreview && (previewDownload || hasThumbnail) ? (
         <div className={mediaClassName}>
           {previewDownload ? (
             <button
@@ -99,13 +117,23 @@ function ResultCard({ result }) {
 
       <div className="result-separator" />
 
+      {hasSlideshowPreview ? (
+        <SlideshowPreview slides={slideshowDownloads} />
+      ) : null}
+
       <div className="download-list">
-        {downloads.map((download, index) => (
-          <DownloadButton
-            key={`${download.format}-${download.url}-${index}`}
-            download={download}
-          />
-        ))}
+        {downloads.map((download, index) => {
+          const key = `${download.format}-${download.url}-${index}`;
+
+          return (
+            <div className="download-item" key={key}>
+              {isAudioDownload(download) ? (
+                <AudioPreview download={download} />
+              ) : null}
+              <DownloadButton download={download} />
+            </div>
+          );
+        })}
       </div>
 
       {isPreviewOpen && previewDownload ? (

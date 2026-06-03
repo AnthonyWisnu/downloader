@@ -1,203 +1,102 @@
 # PLAN.md
 
-## Fase 1: Inisialisasi Struktur Project
+## Scope Sesi Ini
 
-### Tujuan fase
-Menyiapkan struktur folder dan file dasar sesuai `AGENT.md` tanpa menulis logika bisnis utama.
+Rencana ini khusus untuk perbaikan bug Instagram, validasi cookies saat server start, preview slideshow TikTok, dan preview audio TikTok. Implementasi baru dimulai setelah konfirmasi.
 
-### File yang dibuat atau diubah (path lengkap)
-- `c:\laragon\www\downloader\frontend\package.json`
-- `c:\laragon\www\downloader\frontend\index.html`
-- `c:\laragon\www\downloader\frontend\vite.config.js`
-- `c:\laragon\www\downloader\frontend\src\main.jsx`
-- `c:\laragon\www\downloader\frontend\src\App.jsx`
-- `c:\laragon\www\downloader\frontend\src\components\UrlInput.jsx`
-- `c:\laragon\www\downloader\frontend\src\components\ResultCard.jsx`
-- `c:\laragon\www\downloader\frontend\src\components\PlatformBadge.jsx`
-- `c:\laragon\www\downloader\frontend\src\components\DownloadButton.jsx`
-- `c:\laragon\www\downloader\frontend\src\components\LoadingSpinner.jsx`
-- `c:\laragon\www\downloader\frontend\src\hooks\useDownloader.js`
-- `c:\laragon\www\downloader\frontend\src\utils\detectPlatform.js`
-- `c:\laragon\www\downloader\frontend\src\globals.css`
-- `c:\laragon\www\downloader\backend\package.json`
-- `c:\laragon\www\downloader\backend\src\app.js`
-- `c:\laragon\www\downloader\backend\src\routes\download.routes.js`
-- `c:\laragon\www\downloader\backend\src\controllers\download.controller.js`
-- `c:\laragon\www\downloader\backend\src\services\tiktok.service.js`
-- `c:\laragon\www\downloader\backend\src\services\instagram.service.js`
-- `c:\laragon\www\downloader\backend\src\services\cookies.service.js`
-- `c:\laragon\www\downloader\backend\src\utils\sanitizeUrl.js`
-- `c:\laragon\www\downloader\backend\cookies\.gitkeep`
-- `c:\laragon\www\downloader\backend\.env.example`
-- `c:\laragon\www\downloader\.gitignore`
-- `c:\laragon\www\downloader\ecosystem.config.js`
+## Checklist Per File
 
-### Langkah teknis singkat
-- Buat folder `frontend` dan `backend` sesuai struktur wajib.
-- Tambahkan file entry point, komponen, hook, route, controller, service, util, config, dan template env.
-- Isi file awal dengan skeleton minimal yang valid dan mengikuti SRP.
-- Pastikan `.gitignore` mengecualikan cookies Instagram, `.env`, `node_modules`, dan `dist`.
+### backend/src/services/instagram.service.js
 
-### Verifikasi keberhasilan sebelum lanjut ke fase berikutnya
-- Semua path wajib sudah tersedia.
-- Tidak ada file cookies rahasia yang masuk repo.
-- Komponen dan service belum melewati batas tanggung jawab awal.
-- Checkpoint 1: konfirmasi ke user sebelum menulis logika service.
+- [x] Pisahkan alur pengambilan metadata awal dengan menjalankan `yt-dlp --dump-json` tanpa flag `--format`.
+  Alasan: konten foto Instagram gagal jika yt-dlp dipaksa mencari format video.
 
-## Fase 2: Implementasi Backend API
+- [x] Tambahkan deteksi tipe konten dari metadata.
+  Alasan: single photo, carousel foto, dan story foto perlu dikenali dari `ext` gambar seperti `jpg`, `jpeg`, `png`, atau dari `_type: playlist` dengan entry gambar.
 
-### Tujuan fase
-Membuat backend Express yang dapat melayani health check, validasi URL, deteksi platform, dan delegasi download TikTok atau Instagram.
+- [x] Tambahkan alur hasil untuk konten gambar tanpa memakai flag `--format`.
+  Alasan: URL gambar harus diambil langsung dari metadata atau entry playlist, bukan melalui selector video.
 
-### File yang dibuat atau diubah (path lengkap)
-- `c:\laragon\www\downloader\backend\src\app.js`
-- `c:\laragon\www\downloader\backend\src\routes\download.routes.js`
-- `c:\laragon\www\downloader\backend\src\controllers\download.controller.js`
-- `c:\laragon\www\downloader\backend\src\services\tiktok.service.js`
-- `c:\laragon\www\downloader\backend\src\services\instagram.service.js`
-- `c:\laragon\www\downloader\backend\src\services\cookies.service.js`
-- `c:\laragon\www\downloader\backend\src\utils\sanitizeUrl.js`
-- `c:\laragon\www\downloader\backend\package.json`
-- `c:\laragon\www\downloader\backend\.env.example`
+- [x] Pertahankan alur video memakai format video yang sudah ada.
+  Alasan: perbaikan foto tidak boleh merusak download Reels atau video post.
 
-### Langkah teknis singkat
-- Konfigurasi Express, CORS dari `FRONTEND_URL`, JSON body parser, dan route `/api`.
-- Tambahkan `GET /api/health` dengan response `{ "status": "ok" }`.
-- Tambahkan `POST /api/download` dengan validasi request body.
-- Implementasikan `sanitizeUrl.js` untuk menerima hanya URL TikTok dan Instagram yang valid.
-- Implementasikan controller untuk deteksi platform dan response error konsisten.
-- Implementasikan TikTok service memakai `@tobyg74/tiktok-api-dl`.
-- Implementasikan Instagram service memakai `child_process.execFile` untuk `yt-dlp --cookies --dump-json`.
-- Implementasikan cookies service untuk validasi keberadaan dan format Netscape `IG_COOKIES_PATH`.
+- [x] Tambahkan normalisasi error yt-dlp sebelum dilempar ke controller.
+  Alasan: stderr mentah yang panjang, termasuk pesan `please report this issue on github`, tidak boleh sampai ke response API.
 
-### Verifikasi keberhasilan sebelum lanjut ke fase berikutnya
-- `npm install` backend berhasil.
-- Server backend bisa berjalan lokal pada port dari `.env` atau default `3001`.
-- `GET http://localhost:3001/api/health` mengembalikan `{ "status": "ok" }`.
-- `POST /api/download` menolak URL kosong, URL invalid, dan platform tidak didukung.
-- TikTok test URL mengembalikan struktur `platform`, `type`, `title`, `thumbnail`, dan `downloads`.
-- Instagram test URL berjalan jika `ig_cookies.txt` dan `yt-dlp` tersedia, atau memberi error server yang jelas jika belum tersedia.
-- Checkpoint 2: konfirmasi ke user sebelum mulai frontend.
+- [x] Terapkan mapping error bersih:
+  `No video formats found` menjadi `ERR: Format konten tidak didukung`,
+  `HTTP Error 404` menjadi `ERR: Konten tidak ditemukan atau sudah dihapus`,
+  `login required` menjadi `ERR: Konten membutuhkan autentikasi`,
+  metadata kosong menjadi `ERR: Gagal mengambil metadata, coba lagi`,
+  dan fallback menjadi `ERR: Gagal memproses URL Instagram`.
+  Alasan: user mendapat pesan pendek, konsisten, dan tidak membocorkan detail proses backend.
 
-## Fase 3: Implementasi Frontend SPA
+### backend/src/services/cookies.service.js
 
-### Tujuan fase
-Membuat antarmuka single-page VOID yang mengirim URL ke backend dan menampilkan hasil download sesuai `DESIGN.md`.
+- [x] Tambahkan fungsi validasi startup untuk `backend/cookies/ig_cookies.txt`.
+  Alasan: server perlu memberi sinyal apakah cookies Instagram tersedia tanpa menghentikan aplikasi.
 
-### File yang dibuat atau diubah (path lengkap)
-- `c:\laragon\www\downloader\frontend\src\App.jsx`
-- `c:\laragon\www\downloader\frontend\src\main.jsx`
-- `c:\laragon\www\downloader\frontend\src\globals.css`
-- `c:\laragon\www\downloader\frontend\src\components\UrlInput.jsx`
-- `c:\laragon\www\downloader\frontend\src\components\ResultCard.jsx`
-- `c:\laragon\www\downloader\frontend\src\components\PlatformBadge.jsx`
-- `c:\laragon\www\downloader\frontend\src\components\DownloadButton.jsx`
-- `c:\laragon\www\downloader\frontend\src\components\LoadingSpinner.jsx`
-- `c:\laragon\www\downloader\frontend\src\hooks\useDownloader.js`
-- `c:\laragon\www\downloader\frontend\src\utils\detectPlatform.js`
-- `c:\laragon\www\downloader\frontend\package.json`
-- `c:\laragon\www\downloader\frontend\vite.config.js`
-- `c:\laragon\www\downloader\frontend\index.html`
+- [x] Jika file cookies tidak ada atau kosong, tulis warning dan lanjutkan server.
+  Alasan: aplikasi tetap bisa berjalan untuk TikTok atau konten publik.
 
-### Langkah teknis singkat
-- Buat layout mobile-first dengan max width 860px dan urutan hero, separator, input, result, footer.
-- Import JetBrains Mono dan definisikan CSS variables dari palet desain.
-- Implementasikan `UrlInput` dengan tombol `[ GRAB ]`, loading `[ ... ]`, dan error `ERR:`.
-- Implementasikan `useDownloader` untuk request `POST /api/download` dan health check `GET /api/health`.
-- Implementasikan `ResultCard`, `PlatformBadge`, `DownloadButton`, dan `LoadingSpinner`.
-- Pastikan semua tombol memakai format bracket, tanpa emoji, tanpa emdash, tanpa radius, tanpa shadow, tanpa gradient.
-- Pastikan semua komponen mengikuti batas baris dan SRP dari `AGENT.md`.
+- [x] Jika file cookies ada dan berisi, tulis log `cookies loaded: OK`.
+  Alasan: operator server bisa memastikan konfigurasi cookies sudah terbaca.
 
-### Verifikasi keberhasilan sebelum lanjut ke fase berikutnya
-- `npm install` frontend berhasil.
-- `npm run build` frontend berhasil.
-- Dev server Vite menampilkan halaman VOID.
-- Input URL invalid menampilkan error dengan format `ERR:`.
-- Submit URL valid memanggil backend dan menampilkan hasil dalam `ResultCard`.
-- Footer menampilkan `SERVER: OK` atau `SERVER: ERROR` berdasarkan health check.
-- Pemeriksaan visual memastikan tidak ada border radius, shadow, gradient, spinner grafis, emoji, atau warna di luar palet.
-- Checkpoint 3: konfirmasi ke user sebelum deployment.
+### backend/src/app.js
 
-## Fase 4: Integrasi Lokal End-to-End
+- [x] Panggil validasi startup cookies saat aplikasi backend mulai.
+  Alasan: fungsi validasi di `cookies.service.js` harus dieksekusi satu kali pada proses server start.
 
-### Tujuan fase
-Memastikan frontend dan backend bekerja bersama sebelum disiapkan untuk server produksi.
+### frontend/src/components/ResultCard.jsx
 
-### File yang dibuat atau diubah (path lengkap)
-- `c:\laragon\www\downloader\frontend\vite.config.js`
-- `c:\laragon\www\downloader\frontend\src\hooks\useDownloader.js`
-- `c:\laragon\www\downloader\backend\.env.example`
-- `c:\laragon\www\downloader\backend\src\app.js`
+- [x] Deteksi hasil TikTok bertipe `SLIDESHOW` dan tampilkan preview gambar sebelum daftar tombol download.
+  Alasan: user perlu melihat slide terlebih dahulu sebelum memilih gambar yang ingin diunduh.
 
-### Langkah teknis singkat
-- Pastikan konfigurasi API base URL bekerja untuk development.
-- Pastikan CORS backend menerima origin Vite lokal.
-- Jalankan backend dan frontend secara bersamaan.
-- Uji health check dari frontend.
-- Uji download TikTok end-to-end.
-- Uji Instagram end-to-end jika `yt-dlp` dan cookies tersedia.
+- [x] Integrasikan tombol navigasi `[ < ]` dan `[ > ]`, counter `01 / 09`, serta tombol `[ DOWNLOAD THIS SLIDE ]`.
+  Alasan: preview slideshow harus bisa berpindah slide tanpa animasi dan tetap mengikuti format tombol VOID.
 
-### Verifikasi keberhasilan sebelum lanjut ke fase berikutnya
-- Frontend dapat memanggil `/api/health` tanpa error CORS.
-- Frontend dapat menerima error backend dan menampilkannya dengan benar.
-- Hasil download sukses dapat ditampilkan dan tombol `[ DOWNLOAD ]` membuka link download.
-- Log backend tidak menampilkan error tak tertangani.
+- [x] Tampilkan daftar semua slide tetap seperti sebelumnya dengan label `[ JPG / SLIDESHOW IMAGE N ]`.
+  Alasan: fitur baru tidak boleh menghilangkan akses download semua item slideshow.
 
-## Fase 5: Persiapan Deployment
+- [x] Deteksi opsi audio MP3 TikTok dan tampilkan baris `AUDIO PREVIEW` dengan native `<audio controls>`.
+  Alasan: user bisa mengecek audio sebelum menekan tombol download.
 
-### Tujuan fase
-Menyiapkan konfigurasi produksi untuk PM2, Nginx, environment, dan static build frontend.
+- [x] Sembunyikan audio preview secara silent jika browser tidak bisa memutar URL.
+  Alasan: kegagalan preview tidak boleh membuat hasil download terlihat rusak.
 
-### File yang dibuat atau diubah (path lengkap)
-- `c:\laragon\www\downloader\ecosystem.config.js`
-- `c:\laragon\www\downloader\backend\.env.example`
-- `c:\laragon\www\downloader\.gitignore`
-- `c:\laragon\www\downloader\frontend\vite.config.js`
-- `c:\laragon\www\downloader\backend\src\app.js`
+### frontend/src/components/SlideshowPreview.jsx
 
-### Langkah teknis singkat
-- Pastikan `ecosystem.config.js` menjalankan `backend/src/app.js` dari cwd `./backend`.
-- Pastikan `.env.example` memuat `PORT`, `FRONTEND_URL`, `IG_COOKIES_PATH`, dan `NODE_ENV`.
-- Pastikan `.gitignore` melindungi cookies dan `.env`.
-- Build frontend untuk menghasilkan `frontend/dist`.
-- Dokumentasikan kebutuhan server: Node.js 20 LTS, PM2, Nginx, Python 3, dan `yt-dlp`.
+- [x] Buat sub-komponen preview slideshow.
+  Alasan: logika indeks slide, counter, navigasi, dan download slide aktif lebih rapi dipisahkan dari `ResultCard.jsx`.
 
-### Verifikasi keberhasilan sebelum lanjut ke fase berikutnya
-- `npm run build` frontend menghasilkan `frontend/dist`.
-- `pm2 start ecosystem.config.js` dapat menjalankan backend secara lokal atau di server.
-- `curl http://localhost:3001/api/health` mengembalikan status ok saat backend dijalankan PM2.
-- File cookies dan `.env` tetap tidak terlacak oleh git.
-- Checkpoint 4: konfirmasi ke user sebelum SSL.
+- [x] Pastikan semua tombol memakai format bracket dan tidak ada animasi.
+  Alasan: menjaga konsistensi dengan `DESIGN.md`.
 
-## Fase 6: Deployment Server dan SSL
+### frontend/src/components/AudioPreview.jsx
 
-### Tujuan fase
-Menjalankan aplikasi di DigitalOcean dengan Nginx sebagai static server dan reverse proxy, lalu mengaktifkan SSL.
+- [x] Buat sub-komponen preview audio.
+  Alasan: handling error preview audio bisa terisolasi dan tidak membebani `ResultCard.jsx`.
 
-### File yang dibuat atau diubah (path lengkap)
-- `c:\laragon\www\downloader\ecosystem.config.js`
-- `c:\laragon\www\downloader\frontend\dist\`
-- Konfigurasi Nginx server: `/etc/nginx/sites-available/downloader`
-- Konfigurasi Nginx symlink: `/etc/nginx/sites-enabled/downloader`
-- File environment server: `/var/www/downloader/backend/.env`
-- File cookies server: `/var/www/downloader/backend/cookies/ig_cookies.txt`
+- [x] Gunakan native `<audio controls>` dengan fallback silent pada event error.
+  Alasan: browser tetap menangani playback, sementara UI tetap bersih jika URL tidak dapat diputar.
 
-### Langkah teknis singkat
-- Clone atau salin project ke `/var/www/downloader`.
-- Install dependency backend dan frontend.
-- Upload `ig_cookies.txt` format Netscape langsung ke `backend/cookies/`.
-- Buat `.env` produksi sesuai `.env.example`.
-- Build frontend dan arahkan Nginx root ke `frontend/dist`.
-- Konfigurasi Nginx agar `/api/` proxy ke `http://localhost:3001`.
-- Jalankan backend dengan PM2 dan simpan konfigurasi startup.
-- Setelah domain aktif, jalankan Certbot untuk SSL.
+### frontend/src/globals.css
 
-### Verifikasi keberhasilan sebelum lanjut ke fase berikutnya
-- `pm2 status` menunjukkan `downloader-backend` online.
-- `curl http://localhost:3001/api/health` mengembalikan `{ "status": "ok" }`.
-- `sudo nginx -t` sukses dan Nginx reload tanpa error.
-- Domain menampilkan frontend VOID.
-- `https://domain/api/health` mengembalikan status ok setelah SSL aktif.
-- Test download satu URL TikTok berhasil.
-- Test download satu Instagram post berhasil jika cookies valid.
-- Test download satu Instagram Story berhasil jika cookies memiliki akses.
+- [x] Tambahkan class styling untuk slideshow preview, tombol navigasi, counter, tombol download slide aktif, dan audio preview row.
+  Alasan: perubahan visual harus mengikuti aturan `DESIGN.md` tanpa inline style.
+
+- [x] Pastikan semua style memakai warna palet: `#000000`, `#FFFFFF`, `#D4D4D8`, `#3F3F46`, `#71717A`, `#EF4444`.
+  Alasan: konsistensi tema VOID dan kepatuhan desain.
+
+- [x] Pastikan tidak ada `border-radius`, `box-shadow`, gradient, emoji, atau animasi lebih dari 80ms.
+  Alasan: aturan desain project wajib tetap dipenuhi.
+
+## Verifikasi Setelah Implementasi
+
+- [x] Backend: jalankan health check dan pastikan server tetap hidup meski cookies kosong atau tidak ada.
+- [ ] Backend: uji Instagram video tetap menghasilkan opsi download video.
+- [ ] Backend: uji Instagram foto tunggal, carousel foto, dan story foto menghasilkan opsi gambar tanpa error `No video formats found`.
+- [x] Backend: uji error URL invalid dan pastikan response memakai pesan `ERR:` yang bersih.
+- [ ] Frontend: uji slideshow TikTok menampilkan satu gambar, navigasi prev/next, counter, tombol `[ DOWNLOAD THIS SLIDE ]`, dan daftar semua slide.
+- [ ] Frontend: uji hasil audio TikTok menampilkan `AUDIO PREVIEW` jika playable dan hilang silent jika tidak playable.
+- [x] Frontend: jalankan build dan cek tidak ada pelanggaran desain yang terlihat pada komponen baru.

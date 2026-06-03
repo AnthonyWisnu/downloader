@@ -57,7 +57,26 @@ function validateInstagramCookies() {
   };
 }
 
+function validateInstagramCookiesOnStartup() {
+  const cookiesPath = getInstagramCookiesPath();
+
+  if (!fs.existsSync(cookiesPath)) {
+    console.warn(`cookies warning: ig_cookies.txt not found at ${cookiesPath}`);
+    return;
+  }
+
+  const stats = fs.statSync(cookiesPath);
+
+  if (!stats.isFile() || stats.size === 0) {
+    console.warn(`cookies warning: ig_cookies.txt is empty at ${cookiesPath}`);
+    return;
+  }
+
+  console.log("cookies loaded: OK");
+}
+
 module.exports = {
   getInstagramCookiesPath,
+  validateInstagramCookiesOnStartup,
   validateInstagramCookies
 };

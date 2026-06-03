@@ -3,6 +3,7 @@ require("dotenv").config();
 const cors = require("cors");
 const express = require("express");
 const downloadRoutes = require("./routes/download.routes");
+const { validateInstagramCookiesOnStartup } = require("./services/cookies.service");
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
@@ -40,6 +41,7 @@ app.use((error, req, res, next) => {
 });
 
 if (require.main === module) {
+  validateInstagramCookiesOnStartup();
   const server = app.listen(port);
   server.timeout = 300000;
 }
