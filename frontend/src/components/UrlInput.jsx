@@ -11,6 +11,7 @@ function UrlInput({
 }) {
   const hasError = Boolean(error);
   const inputClassName = hasError ? "url-input-field has-error" : "url-input-field";
+  const errorLabel = String(error || "").startsWith("ERR:") ? error : `ERR: ${error}`;
   const statusLabel =
     detectedPlatform && detectedPlatform !== "unknown"
       ? platformLabel(detectedPlatform)
@@ -50,7 +51,7 @@ function UrlInput({
 
         {hasError ? (
           <p className="url-input-error" id="url-input-error">
-            ERR: {error}
+            {errorLabel}
           </p>
         ) : null}
       </form>

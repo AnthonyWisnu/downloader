@@ -83,6 +83,24 @@ function isImageExt(ext) {
   return ["jpg", "jpeg", "webp", "png"].includes(String(ext || "").toLowerCase());
 }
 
+function getImageExtFromUrl(url) {
+  try {
+    const pathname = new URL(url).pathname.toLowerCase();
+    const match = pathname.match(/\.jpe?g|\.png|\.webp/);
+    return match ? match[0].replace(".", "").replace("jpeg", "jpg") : "";
+  } catch {
+    return "";
+  }
+}
+
+function isImageUrl(url) {
+  if (!isHttpUrl(url)) {
+    return false;
+  }
+
+  return Boolean(getImageExtFromUrl(url));
+}
+
 function isVideoFormat(format) {
   if (!format || !isHttpUrl(format.url)) {
     return false;
@@ -134,6 +152,39 @@ function pickBestFormat(formats, predicate) {
     .sort((left, right) => getFormatScore(right) - getFormatScore(left))[0] || null;
 }
 
+function hasVideoCandidate(entry) {
+  if (!entry) {
+    return false;
+  }
+
+  if (entry.ext === "mp4" || (isHttpUrl(entry.url) && String(entry.url).includes(".mp4"))) {
+    return true;
+  }
+
+  return Boolean(
+    pickBestFormat(entry.requested_downloads, isVideoFormat) ||
+    pickBestFormat(entry.requested_formats, isVideoFormat) ||
+    pickBestFormat(entry.formats, isVideoFormat)
+  );
+}
+
+function getThumbnailCandidates(entry) {
+  const candidates = [
+    entry.url,
+    entry.thumbnail,
+    entry.thumbnail_url,
+    entry.display_url
+  ];
+
+  if (Array.isArray(entry.thumbnails)) {
+    entry.thumbnails.forEach((thumbnail) => {
+      candidates.push(thumbnail?.url);
+    });
+  }
+
+  return candidates.filter(isImageUrl);
+}
+
 function getDirectImageMedia(entry) {
   if (isHttpUrl(entry.url) && isImageExt(entry.ext)) {
     return {
@@ -153,10 +204,12 @@ function getDirectImageMedia(entry) {
     };
   }
 
-  if (isHttpUrl(entry.thumbnail) && isImageExt(entry.ext)) {
+  const thumbnailUrl = hasVideoCandidate(entry) ? "" : getThumbnailCandidates(entry)[0];
+
+  if (thumbnailUrl) {
     return {
-      url: entry.thumbnail,
-      format: entry.ext || "jpg",
+      url: thumbnailUrl,
+      format: isImageExt(entry.ext) ? entry.ext : getImageExtFromUrl(thumbnailUrl) || "jpg",
       kind: "Image"
     };
   }
