@@ -122,7 +122,18 @@ async function proxyMedia(req, res) {
     res.status(upstream.status);
     setProxyHeaders(res, upstream, shouldDownload);
     upstream.data.pipe(res);
-  } catch {
+  } catch (error) {
+    const status = error.response?.status || "no-status";
+    const host = (() => {
+      try {
+        return new URL(req.query.url).hostname;
+      } catch {
+        return "invalid-host";
+      }
+    })();
+
+    process.stderr.write(`media proxy failed host=${host} status=${status}\n`);
+
     res.status(502).json({
       error: DEFAULT_ERROR
     });
