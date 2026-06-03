@@ -2,24 +2,24 @@ import { Download, Monitor, Shield, ThumbsUp } from "lucide-react";
 
 const features = [
   {
-    title: "Unduh cepat",
+    title: "Cepat dipakai",
     icon: Download,
-    text: "Server memproses URL dan mengembalikan opsi download tanpa alur tambahan."
+    text: "Tempel link, tekan tombol, lalu pilih file yang tersedia. Tidak perlu langkah rumit."
   },
   {
-    title: "Semua perangkat",
+    title: "Tanpa aplikasi",
     icon: Monitor,
-    text: "VOID berjalan di browser desktop, tablet, dan ponsel tanpa aplikasi tambahan."
+    text: "Buka langsung dari browser di ponsel, tablet, atau desktop. Tidak perlu install apa pun."
   },
   {
-    title: "Preview dulu",
+    title: "Lihat dulu",
     icon: ThumbsUp,
-    text: "Video bisa dicek melalui player sebelum memilih file yang ingin diunduh."
+    text: "Cek videonya di player sebelum download, jadi kamu tahu file yang diambil sudah benar."
   },
   {
-    title: "Privasi server",
+    title: "Lebih aman",
     icon: Shield,
-    text: "Cookies Instagram hanya dipakai di backend dan tidak pernah dikirim ke frontend."
+    text: "Kamu tidak perlu login di halaman ini. Cukup masukkan link konten yang ingin diambil."
   }
 ];
 
@@ -44,10 +44,10 @@ function FeatureSection() {
     <section className="feature-section" aria-label="Keunggulan VOID">
       <header className="feature-header">
         <span>WHY VOID</span>
-        <h2>Pilih VOID untuk download TikTok dan Instagram</h2>
+        <h2>Download konten tanpa ribet</h2>
         <p>
-          VOID dibuat sebagai alat langsung pakai: tempel URL, cek preview,
-          lalu ambil media yang tersedia tanpa login di browser pengguna.
+          VOID dibuat untuk pengguna yang cuma ingin ambil video atau foto dengan cepat.
+          Masukkan link, lihat preview, lalu download.
         </p>
       </header>
 
