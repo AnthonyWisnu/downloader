@@ -23,6 +23,8 @@ function getMediaClassName(result) {
 }
 
 function PreviewModal({ previewDownload, result, onClose }) {
+  const previewUrl = result.previewUrl || getMediaUrl(previewDownload.url);
+
   return (
     <div className="preview-modal" role="dialog" aria-modal="true" aria-label="Video preview">
       <div className="preview-modal-panel">
@@ -32,7 +34,7 @@ function PreviewModal({ previewDownload, result, onClose }) {
 
         <video
           className="preview-modal-video"
-          src={getMediaUrl(previewDownload.url)}
+          src={previewUrl}
           poster={result.thumbnail || ""}
           controls
           autoPlay

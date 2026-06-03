@@ -225,6 +225,8 @@ async function downloadInstagram(url) {
     type: detectInstagramType(metadata),
     title: metadata.title || metadata.description || "Instagram content",
     thumbnail: metadata.thumbnail || "",
+    sourceUrl: url,
+    previewUrl: `/api/preview?url=${encodeURIComponent(url)}`,
     downloads
   };
 }

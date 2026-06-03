@@ -127,6 +127,8 @@ function normalizeResult(result) {
     type: result?.type || "video",
     title: result?.title || "Untitled content",
     thumbnail: result?.thumbnail || "",
+    sourceUrl: result?.sourceUrl || "",
+    previewUrl: result?.previewUrl || "",
     downloads
   };
 }
