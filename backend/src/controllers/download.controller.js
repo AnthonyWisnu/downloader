@@ -4,6 +4,16 @@ const { downloadInstagram } = require("../services/instagram.service");
 
 const DEFAULT_ERROR = "URL tidak valid atau konten tidak dapat diakses";
 
+function formatApiError(message) {
+  const cleanMessage = message || DEFAULT_ERROR;
+
+  if (cleanMessage.startsWith("ERR:")) {
+    return cleanMessage;
+  }
+
+  return `ERR: ${cleanMessage}`;
+}
+
 function healthCheck(req, res) {
   res.json({ status: "ok" });
 }
@@ -12,7 +22,7 @@ async function downloadContent(req, res) {
   const sanitized = sanitizeUrl(req.body?.url);
 
   if (!sanitized.ok) {
-    res.status(400).json({ error: sanitized.error });
+    res.status(400).json({ error: formatApiError(sanitized.error) });
     return;
   }
 
@@ -26,7 +36,7 @@ async function downloadContent(req, res) {
   } catch (error) {
     const statusCode = error.statusCode || 502;
     res.status(statusCode).json({
-      error: error.message || DEFAULT_ERROR
+      error: formatApiError(error.message)
     });
   }
 }

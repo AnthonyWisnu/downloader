@@ -35,8 +35,10 @@ app.use("/api", (req, res) => {
 });
 
 app.use((error, req, res, next) => {
+  const message = error.message || "Server error";
+
   res.status(500).json({
-    error: error.message || "Server error"
+    error: message.startsWith("ERR:") ? message : `ERR: ${message}`
   });
 });
 
