@@ -381,7 +381,7 @@ async function downloadInstagram(url) {
       title: metadata.title || metadata.description || "Instagram content",
       thumbnail: metadata.thumbnail || null,
       sourceUrl: url,
-      previewUrl: `/api/preview?url=${encodeURIComponent(url)}`,
+      previewUrl: `/api/file?token=${token}`,
       downloads: responseDownloads
     };
   } catch (error) {

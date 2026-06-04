@@ -18,7 +18,23 @@ function firstString(...values) {
     }
 
     if (Array.isArray(value)) {
-      const match = value.find((item) => typeof item === "string" && item.length > 0);
+      const match = value.map((item) => firstString(item)).find(Boolean);
+
+      if (match) {
+        return match;
+      }
+    }
+
+    if (value && typeof value === "object") {
+      const match = firstString(
+        value.play,
+        value.playUrl,
+        value.url,
+        value.downloadUrl,
+        value.download,
+        value.href,
+        value.src
+      );
 
       if (match) {
         return match;
@@ -27,6 +43,31 @@ function firstString(...values) {
   }
 
   return "";
+}
+
+function findMediaUrlByKeyword(items, keywords) {
+  if (!Array.isArray(items)) {
+    return "";
+  }
+
+  return items
+    .map((item) => {
+      const descriptor = [
+        item?.label,
+        item?.type,
+        item?.format,
+        item?.quality,
+        item?.mimeType,
+        item?.contentType
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      if (!keywords.some((keyword) => descriptor.includes(keyword))) {
+        return "";
+      }
+
+      return firstString(item);
+    })
+    .find(Boolean) || "";
 }
 
 function collectDownloads(result) {
@@ -73,13 +114,33 @@ function collectDownloads(result) {
   }
 
   const audioUrl = firstString(
+    findMediaUrlByKeyword(payload.medias, ["audio", "music", "mp3", "m4a"]),
+    findMediaUrlByKeyword(payload.downloads, ["audio", "music", "mp3", "m4a"]),
+    findMediaUrlByKeyword(payload.links, ["audio", "music", "mp3", "m4a"]),
     payload.music,
     payload.music?.play,
     payload.music?.playUrl,
+    payload.music?.url,
+    payload.music?.downloadUrl,
     payload.audio,
+    payload.audio?.play,
+    payload.audio?.playUrl,
+    payload.audio?.url,
+    payload.audio?.downloadUrl,
     payload.audio_url,
+    payload.sound,
+    payload.sound?.play,
+    payload.sound?.playUrl,
+    payload.sound?.url,
+    payload.sound?.downloadUrl,
     payload.music_info?.play,
-    payload.musicInfo?.play
+    payload.music_info?.playUrl,
+    payload.music_info?.url,
+    payload.music_info?.downloadUrl,
+    payload.musicInfo?.play,
+    payload.musicInfo?.playUrl,
+    payload.musicInfo?.url,
+    payload.musicInfo?.downloadUrl
   );
 
   if (audioUrl) {
