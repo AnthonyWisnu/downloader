@@ -34,12 +34,12 @@ function collectDownloads(result) {
   const downloads = [];
 
   const videoUrl = firstString(
+    payload.videoHD,
+    payload.videoSD,
     payload.nowm,
     payload.no_watermark,
     payload.noWatermark,
     payload.video_no_watermark,
-    payload.videoHD,
-    payload.videoSD,
     payload.video?.noWatermark,
     payload.video?.nowm,
     payload.video?.url,
@@ -57,10 +57,10 @@ function collectDownloads(result) {
   }
 
   const watermarkUrl = firstString(
+    payload.videoWatermark,
     payload.wm,
     payload.watermark,
     payload.video_watermark,
-    payload.videoWatermark,
     payload.video?.watermark
   );
 
@@ -74,9 +74,10 @@ function collectDownloads(result) {
 
   const audioUrl = firstString(
     payload.music,
+    payload.music?.play,
+    payload.music?.playUrl,
     payload.audio,
     payload.audio_url,
-    payload.music?.playUrl,
     payload.music_info?.play,
     payload.musicInfo?.play
   );
@@ -110,9 +111,10 @@ function getMetadata(result) {
   const payload = result.result || result.data || result;
 
   return {
-    title: firstString(payload.title, payload.desc, payload.description, "TikTok content"),
+    title: firstString(payload.desc, payload.title, payload.description, "TikTok content"),
     thumbnail: firstString(
       payload.cover,
+      payload.author?.avatar,
       payload.thumbnail,
       payload.video?.cover,
       payload.video?.originCover,
@@ -128,7 +130,7 @@ async function downloadTikTok(url) {
     throw new Error("Downloader TikTok tidak tersedia");
   }
 
-  const result = await downloader(url, { version: "v1" });
+  const result = await downloader(url, { version: "v3" });
   const downloads = collectDownloads(result);
 
   if (downloads.length === 0) {

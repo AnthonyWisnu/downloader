@@ -1,6 +1,15 @@
 const { execFile } = require("child_process");
+const crypto = require("crypto");
+const fs = require("fs");
 const { instagramGetUrl } = require("instagram-url-direct");
+const os = require("os");
+const path = require("path");
 const { validateInstagramCookies } = require("./cookies.service");
+
+const DOWNLOAD_CACHE_DIR = path.join(os.tmpdir(), "void-dl-cache");
+const MERGE_FORMAT =
+  "best[ext=mp4][acodec!=none][vcodec!=none]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best";
+const OUTPUT_EXTENSIONS = ["mp4", "mkv", "webm"];
 
 function runYtDlp(args) {
   return new Promise((resolve, reject) => {
@@ -88,6 +97,18 @@ function isHttpUrl(value) {
   return typeof value === "string" && /^https?:\/\//i.test(value);
 }
 
+function ensureDownloadCacheDir() {
+  fs.mkdirSync(DOWNLOAD_CACHE_DIR, { recursive: true });
+}
+
+function getDownloadToken(url) {
+  return crypto.createHash("sha256").update(url).digest("hex").slice(0, 32);
+}
+
+function getCachedDownloadPath(token) {
+  return path.join(DOWNLOAD_CACHE_DIR, `${token}.mp4`);
+}
+
 function getItems(metadata) {
   if (metadata?._type === "playlist" && Array.isArray(metadata.entries)) {
     return metadata.entries.filter(Boolean);
@@ -114,6 +135,45 @@ function getFormatScore(format) {
   return Number(format?.tbr || 0) * 1000000 +
     Number(format?.height || 0) * 1000 +
     Number(format?.width || 0);
+}
+
+function hasAudioStream(metadata) {
+  return getItems(metadata).some((item) => {
+    const formats = Array.isArray(item?.formats) ? item.formats : [];
+
+    return formats.some((format) => {
+      const acodec = String(format?.acodec || "").toLowerCase();
+      return Boolean(acodec) && acodec !== "none";
+    });
+  });
+}
+
+function hasUsableAudioCodec(format) {
+  const acodec = String(format?.acodec || "").toLowerCase();
+  return Boolean(acodec) && acodec !== "none";
+}
+
+function hasNoVideoCodec(format) {
+  const vcodec = String(format?.vcodec || "").toLowerCase();
+  return !vcodec || vcodec === "none";
+}
+
+function isSupportedAudioExt(format) {
+  return ["m4a", "mp4", "aac"].includes(String(format?.ext || "").toLowerCase());
+}
+
+function extractAudioUrl(metadata) {
+  const audioFormats = getItems(metadata)
+    .flatMap((item) => Array.isArray(item?.formats) ? item.formats : [])
+    .filter((format) =>
+      isHttpUrl(format?.url) &&
+      hasUsableAudioCodec(format) &&
+      hasNoVideoCodec(format) &&
+      isSupportedAudioExt(format)
+    )
+    .sort((left, right) => Number(right?.tbr || 0) - Number(left?.tbr || 0));
+
+  return audioFormats[0]?.url || null;
 }
 
 function pickBestVideoUrl(item) {
@@ -173,6 +233,55 @@ async function fetchYtDlpMetadata(url, cookiesPath) {
   ]);
 
   return parseYtDlpJson(output);
+}
+
+async function downloadWithMerge(url, cookiesPath) {
+  ensureDownloadCacheDir();
+
+  const token = getDownloadToken(url);
+  const outputPath = getCachedDownloadPath(token);
+
+  if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
+    return outputPath;
+  }
+
+  const outputBase = path.join(DOWNLOAD_CACHE_DIR, token);
+  const outputTemplate = `${outputBase}.%(ext)s`;
+  const candidatePaths = OUTPUT_EXTENSIONS.map((extension) => `${outputBase}.${extension}`);
+
+  candidatePaths.forEach((candidatePath) => {
+    if (fs.existsSync(candidatePath)) {
+      fs.rmSync(candidatePath, { force: true });
+    }
+  });
+
+  await runYtDlp([
+    "--cookies",
+    cookiesPath,
+    "--no-warnings",
+    "--no-playlist",
+    "--format",
+    MERGE_FORMAT,
+    "--merge-output-format",
+    "mp4",
+    "--output",
+    outputTemplate,
+    url
+  ]);
+
+  const mergedPath = candidatePaths.find((candidatePath) =>
+    fs.existsSync(candidatePath) && fs.statSync(candidatePath).size > 0
+  );
+
+  if (!mergedPath) {
+    throw new Error("Merged file kosong");
+  }
+
+  if (mergedPath !== outputPath) {
+    fs.renameSync(mergedPath, outputPath);
+  }
+
+  return outputPath;
 }
 
 function detectPhotoFormat(url) {
@@ -244,6 +353,28 @@ async function downloadInstagram(url) {
       throw new Error("No video formats found");
     }
 
+    await downloadWithMerge(url, cookies.path);
+
+    const token = getDownloadToken(url);
+    const hasAudio = hasAudioStream(metadata);
+    const label = hasAudio ? "MP4 / VIDEO" : "MP4 / VIDEO (NO AUDIO)";
+    const responseDownloads = [
+      {
+        label,
+        url: `/api/file?token=${token}&download=1`,
+        format: "mp4"
+      }
+    ];
+    const audioUrl = extractAudioUrl(metadata);
+
+    if (audioUrl) {
+      responseDownloads.push({
+        label: "Audio Only",
+        url: audioUrl,
+        format: "mp3"
+      });
+    }
+
     return {
       platform: "instagram",
       type: detectInstagramType(url, metadata),
@@ -251,7 +382,7 @@ async function downloadInstagram(url) {
       thumbnail: metadata.thumbnail || null,
       sourceUrl: url,
       previewUrl: `/api/preview?url=${encodeURIComponent(url)}`,
-      downloads
+      downloads: responseDownloads
     };
   } catch (error) {
     if (isNoVideoFormatsError(error)) {

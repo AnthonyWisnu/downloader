@@ -1,6 +1,7 @@
 const dns = require("dns/promises");
 const net = require("net");
 const axios = require("axios");
+const { downloadFile } = require("./file.controller");
 
 const DEFAULT_ERROR = "Media tidak dapat diputar";
 
@@ -107,6 +108,14 @@ function setProxyHeaders(res, upstream, shouldDownload) {
 
 async function proxyMedia(req, res) {
   try {
+    if (typeof req.query.url === "string" && req.query.url.startsWith("/api/file?")) {
+      const internalUrl = new URL(req.query.url, "http://127.0.0.1");
+      req.query.token = internalUrl.searchParams.get("token") || "";
+      req.query.download = req.query.download === "1" ? "1" : internalUrl.searchParams.get("download");
+      downloadFile(req, res);
+      return;
+    }
+
     const parsedUrl = await validateMediaUrl(req.query.url);
     const shouldDownload = req.query.download === "1";
     const upstream = await axios.get(parsedUrl.toString(), {

@@ -27,7 +27,9 @@ function App() {
         onSubmit={downloader.submit}
       />
 
-      {downloader.isLoading ? <LoadingSpinner /> : null}
+      {downloader.isLoading ? (
+        <LoadingSpinner platform={downloader.detectedPlatform} />
+      ) : null}
       {!downloader.isLoading ? <ResultCard result={downloader.result} /> : null}
 
       <div className="section-separator" />
