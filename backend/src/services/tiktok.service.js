@@ -281,7 +281,7 @@ async function downloadTikTok(url) {
     throw new Error("Downloader TikTok tidak tersedia");
   }
 
-  const result = await downloader(url, { version: "v3" });
+  const result = await downloader(url, { version: "v1" });
   const downloads = await collectDownloads(result, url);
 
   if (downloads.length === 0) {
