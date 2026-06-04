@@ -1,3 +1,11 @@
+const { execFile } = require("child_process");
+const crypto = require("crypto");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+
+const DOWNLOAD_CACHE_DIR = path.join(os.tmpdir(), "void-dl-cache");
+
 function getDownloader() {
   const tiktokApi = require("@tobyg74/tiktok-api-dl");
 
@@ -45,6 +53,77 @@ function firstString(...values) {
   return "";
 }
 
+function ensureDownloadCacheDir() {
+  fs.mkdirSync(DOWNLOAD_CACHE_DIR, { recursive: true });
+}
+
+function getDownloadToken(url) {
+  return crypto.createHash("sha256").update(url).digest("hex").slice(0, 32);
+}
+
+function runYtDlp(args) {
+  return new Promise((resolve, reject) => {
+    execFile("yt-dlp", args, { maxBuffer: 1024 * 1024 * 16 }, (error, stdout, stderr) => {
+      if (error) {
+        error.stderr = stderr;
+        reject(error);
+        return;
+      }
+
+      resolve(stdout);
+    });
+  });
+}
+
+function logAudioFallbackError(error) {
+  const message = String(error?.stderr || error?.message || "").trim();
+
+  if (!message) {
+    return;
+  }
+
+  const firstLine = message.split(/\r?\n/).find(Boolean) || message;
+  process.stderr.write(`[tiktok] audio fallback failed: ${firstLine.slice(0, 180)}\n`);
+}
+
+async function downloadAudioWithYtDlp(url) {
+  ensureDownloadCacheDir();
+
+  const token = getDownloadToken(`tiktok-audio:${url}`);
+  const outputPath = path.join(DOWNLOAD_CACHE_DIR, `${token}.mp3`);
+
+  if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
+    return {
+      token,
+      path: outputPath
+    };
+  }
+
+  const outputBase = path.join(DOWNLOAD_CACHE_DIR, token);
+
+  await runYtDlp([
+    "--no-warnings",
+    "--no-playlist",
+    "--extract-audio",
+    "--audio-format",
+    "mp3",
+    "--audio-quality",
+    "0",
+    "--output",
+    `${outputBase}.%(ext)s`,
+    url
+  ]);
+
+  if (!fs.existsSync(outputPath) || fs.statSync(outputPath).size === 0) {
+    throw new Error("Audio TikTok kosong");
+  }
+
+  return {
+    token,
+    path: outputPath
+  };
+}
+
 function findMediaUrlByKeyword(items, keywords) {
   if (!Array.isArray(items)) {
     return "";
@@ -70,7 +149,7 @@ function findMediaUrlByKeyword(items, keywords) {
     .find(Boolean) || "";
 }
 
-function collectDownloads(result) {
+async function collectDownloads(result, sourceUrl) {
   const payload = result.result || result.data || result;
   const downloads = [];
 
@@ -142,13 +221,24 @@ function collectDownloads(result) {
     payload.musicInfo?.url,
     payload.musicInfo?.downloadUrl
   );
-
   if (audioUrl) {
     downloads.push({
       label: "Audio Only",
       url: audioUrl,
       format: "mp3"
     });
+  } else if (videoUrl || watermarkUrl) {
+    try {
+      const audioFile = await downloadAudioWithYtDlp(sourceUrl);
+
+      downloads.push({
+        label: "Audio Only",
+        url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
+        format: "mp3"
+      });
+    } catch (error) {
+      logAudioFallbackError(error);
+    }
   }
 
   const images = payload.images || payload.image_post?.images || payload.imagePost?.images || [];
@@ -192,7 +282,7 @@ async function downloadTikTok(url) {
   }
 
   const result = await downloader(url, { version: "v3" });
-  const downloads = collectDownloads(result);
+  const downloads = await collectDownloads(result, url);
 
   if (downloads.length === 0) {
     throw new Error("URL tidak valid atau konten tidak dapat diakses");

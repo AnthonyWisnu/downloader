@@ -366,6 +366,7 @@ async function downloadInstagram(url) {
       }
     ];
     const audioUrl = extractAudioUrl(metadata);
+    const audioStatus = audioUrl ? "available" : "unavailable";
 
     if (audioUrl) {
       responseDownloads.push({
@@ -382,6 +383,7 @@ async function downloadInstagram(url) {
       thumbnail: metadata.thumbnail || null,
       sourceUrl: url,
       previewUrl: `/api/file?token=${token}`,
+      audioStatus,
       downloads: responseDownloads
     };
   } catch (error) {

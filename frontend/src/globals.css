@@ -505,6 +505,14 @@ a {
   filter: grayscale(1);
 }
 
+.audio-status-note {
+  margin: 0 0 var(--space-sm);
+  color: var(--color-muted);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  line-height: 1.6;
+}
+
 .how-section {
   margin-top: var(--space-lg);
   border-top: var(--border-thin) solid var(--border-divider);

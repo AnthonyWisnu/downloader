@@ -111,6 +111,7 @@ async function proxyMedia(req, res) {
     if (typeof req.query.url === "string" && req.query.url.startsWith("/api/file?")) {
       const internalUrl = new URL(req.query.url, "http://127.0.0.1");
       req.query.token = internalUrl.searchParams.get("token") || "";
+      req.query.kind = internalUrl.searchParams.get("kind") || "";
       req.query.download = req.query.download === "1" ? "1" : internalUrl.searchParams.get("download");
       downloadFile(req, res);
       return;

@@ -35,6 +35,14 @@ function isImageDownload(download) {
   return ["jpg", "jpeg", "png", "webp"].includes(format) || label.includes("image");
 }
 
+function shouldShowAudioNotice(result, download) {
+  return (
+    result?.platform === "instagram" &&
+    result?.audioStatus === "unavailable" &&
+    isVideoDownload(download)
+  );
+}
+
 function getMediaClassName(result) {
   const portraitTypes = new Set(["video", "reels", "story"]);
   const isPortrait = result.platform === "tiktok" || portraitTypes.has(result.type);
@@ -137,6 +145,11 @@ function ResultCard({ result }) {
                 <AudioPreview download={download} />
               ) : null}
               <DownloadButton download={download} />
+              {shouldShowAudioNotice(result, download) ? (
+                <p className="audio-status-note">
+                  AUDIO: TIDAK TERSEDIA (MUSIK DILINDUNGI PLATFORM)
+                </p>
+              ) : null}
             </div>
           );
         })}
