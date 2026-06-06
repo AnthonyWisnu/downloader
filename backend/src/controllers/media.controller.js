@@ -4,6 +4,19 @@ const axios = require("axios");
 const { downloadFile } = require("./file.controller");
 
 const DEFAULT_ERROR = "Media tidak dapat diputar";
+const CONTENT_TYPE_EXTENSIONS = {
+  "image/jpeg": "jpg",
+  "image/jpg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "audio/mpeg": "mp3",
+  "audio/mp3": "mp3",
+  "audio/mp4": "m4a",
+  "audio/aac": "aac",
+  "video/mp4": "mp4",
+  "video/webm": "webm"
+};
 
 function isPrivateIPv4(address) {
   const parts = address.split(".").map((part) => Number(part));
@@ -66,6 +79,7 @@ async function validateMediaUrl(rawUrl) {
 
 function getRequestHeaders(req, parsedUrl) {
   const headers = {
+    Accept: "*/*",
     "User-Agent":
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125 Safari/537.36"
   };
@@ -85,13 +99,76 @@ function getRequestHeaders(req, parsedUrl) {
   return headers;
 }
 
-function setProxyHeaders(res, upstream, shouldDownload) {
+function getContentType(upstream, parsedUrl) {
+  const upstreamType = String(upstream.headers["content-type"] || "").split(";")[0].trim();
+
+  if (upstreamType) {
+    return upstreamType;
+  }
+
+  const extension = getUrlExtension(parsedUrl);
+
+  if (["jpg", "jpeg"].includes(extension)) {
+    return "image/jpeg";
+  }
+
+  if (extension === "png") {
+    return "image/png";
+  }
+
+  if (extension === "webp") {
+    return "image/webp";
+  }
+
+  if (extension === "mp3") {
+    return "audio/mpeg";
+  }
+
+  if (extension === "mp4") {
+    return "video/mp4";
+  }
+
+  return "application/octet-stream";
+}
+
+function getUrlExtension(parsedUrl) {
+  const pathname = parsedUrl.pathname.toLowerCase();
+  const match = /\.([a-z0-9]+)$/.exec(pathname);
+
+  return match ? match[1] : "";
+}
+
+function getDownloadFilename(contentType, parsedUrl) {
+  const normalizedType = String(contentType || "").toLowerCase();
+  const mappedExtension = CONTENT_TYPE_EXTENSIONS[normalizedType];
+  const urlExtension = getUrlExtension(parsedUrl);
+  const extension = mappedExtension || urlExtension || "bin";
+
+  if (normalizedType.startsWith("image/") || ["jpg", "jpeg", "png", "webp", "gif"].includes(extension)) {
+    const imageExtension = extension === "jpeg" ? "jpg" : extension;
+    return `void-image.${imageExtension}`;
+  }
+
+  if (normalizedType.startsWith("audio/") || ["mp3", "m4a", "aac"].includes(extension)) {
+    return `void-audio.${extension}`;
+  }
+
+  if (normalizedType.startsWith("video/") || ["mp4", "webm"].includes(extension)) {
+    return `void-video.${extension}`;
+  }
+
+  return `void-download.${extension}`;
+}
+
+function setProxyHeaders(res, upstream, shouldDownload, parsedUrl) {
+  const contentType = getContentType(upstream, parsedUrl);
   const passthroughHeaders = [
-    "content-type",
     "content-length",
     "content-range",
     "accept-ranges"
   ];
+
+  res.setHeader("Content-Type", contentType);
 
   passthroughHeaders.forEach((header) => {
     const value = upstream.headers[header];
@@ -102,7 +179,8 @@ function setProxyHeaders(res, upstream, shouldDownload) {
   });
 
   if (shouldDownload) {
-    res.setHeader("Content-Disposition", "attachment; filename=\"void-download\"");
+    const filename = getDownloadFilename(contentType, parsedUrl);
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
   }
 }
 
@@ -130,7 +208,7 @@ async function proxyMedia(req, res) {
     });
 
     res.status(upstream.status);
-    setProxyHeaders(res, upstream, shouldDownload);
+    setProxyHeaders(res, upstream, shouldDownload, parsedUrl);
     upstream.data.pipe(res);
   } catch (error) {
     const status = error.response?.status || "no-status";

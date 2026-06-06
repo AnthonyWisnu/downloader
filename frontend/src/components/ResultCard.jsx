@@ -90,6 +90,9 @@ function ResultCard({ result }) {
     ? downloads.filter(isImageDownload)
     : [];
   const hasImagePreview = imagePreviewDownloads.length > 0;
+  const visibleDownloads = hasImagePreview
+    ? downloads.filter((download) => !isImageDownload(download))
+    : downloads;
   const mediaClassName = getMediaClassName(result);
 
   return (
@@ -134,7 +137,7 @@ function ResultCard({ result }) {
       {hasImagePreview ? <SlideshowPreview slides={imagePreviewDownloads} /> : null}
 
       <div className="download-list">
-        {downloads.map((download, index) => {
+        {visibleDownloads.map((download, index) => {
           const key = `${download.format}-${download.url}-${index}`;
 
           return (

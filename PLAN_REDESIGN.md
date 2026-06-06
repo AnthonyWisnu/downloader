@@ -20,7 +20,7 @@ Dokumen ini adalah rencana kerja bertahap untuk redesign frontend VOID Downloade
 
 ---
 
-## Tahap 0 - Persiapan dan Audit
+## Tahap 0 - Persiapan dan Audit (Selesai)
 
 Tujuan: memastikan fondasi siap sebelum menyentuh tampilan.
 
@@ -34,7 +34,7 @@ BERHENTI, tunggu konfirmasi.
 
 ---
 
-## Tahap 1 - Fondasi Styling (Design System)
+## Tahap 1 - Fondasi Styling (Design System) (Selesai)
 
 Tujuan: menyiapkan sistem warna dan struktur CSS sebelum membangun komponen.
 
@@ -51,7 +51,7 @@ BERHENTI, tunggu konfirmasi.
 
 ---
 
-## Tahap 2 - Hero dan Downloader Panel (inti halaman)
+## Tahap 2 - Hero dan Downloader Panel (inti halaman) (Selesai)
 
 Tujuan: membangun dua section terpenting lebih dulu.
 
@@ -66,7 +66,7 @@ BERHENTI, tunggu konfirmasi.
 
 ---
 
-## Tahap 3 - Result Section
+## Tahap 3 - Result Section (Selesai)
 
 Tujuan: refactor tampilan hasil download.
 
@@ -80,7 +80,7 @@ BERHENTI, tunggu konfirmasi.
 
 ---
 
-## Tahap 4 - Section Konten (Platform, Feature, How To, FAQ)
+## Tahap 4 - Section Konten (Platform, Feature, How To, FAQ) (Selesai)
 
 Tujuan: membangun section informatif landing page.
 
@@ -96,7 +96,7 @@ BERHENTI, tunggu konfirmasi.
 
 ---
 
-## Tahap 5 - Footer dan Finalisasi App.jsx
+## Tahap 5 - Footer dan Finalisasi App.jsx (Selesai)
 
 Tujuan: melengkapi halaman dan merapikan orchestrator.
 
@@ -110,7 +110,7 @@ BERHENTI, tunggu konfirmasi.
 
 ---
 
-## Tahap 6 - Micro Interaction, Responsive, Accessibility
+## Tahap 6 - Micro Interaction, Responsive, Accessibility (Selesai)
 
 Tujuan: poles detail interaksi dan kualitas.
 
@@ -125,7 +125,7 @@ BERHENTI, tunggu konfirmasi.
 
 ---
 
-## Tahap 7 - Cleanup dan Verifikasi Akhir
+## Tahap 7 - Cleanup dan Verifikasi Akhir (Selesai)
 
 Tujuan: memastikan semua acceptance criteria terpenuhi.
 
@@ -140,22 +140,87 @@ SELESAI.
 
 ---
 
+## Tahap 8 - Fix Slideshow Download (Belum Dikerjakan)
+
+Tujuan: memperbaiki download gambar slideshow dan merapikan result card slideshow tanpa mengubah bagian lain.
+
+Catatan batasan: tahap ini adalah pengecualian terbatas dari aturan "Tidak mengubah backend sama sekali" karena bug download gambar berada pada response binary/header backend. Perubahan backend hanya boleh menyentuh handler/proxy download gambar yang relevan.
+
+### Backend - Download Gambar Slideshow (Selesai)
+
+- [x] Audit endpoint/proxy yang dipakai tombol download gambar slideshow:
+  - `backend/src/controllers/media.controller.js`
+  - `backend/src/controllers/file.controller.js` jika terlibat pada internal file route
+  - util/service terkait media proxy jika ada
+- [x] Pastikan URL gambar external diproxy sebagai binary stream atau buffer, bukan JSON.
+- [x] Pastikan response header gambar benar:
+  - `Content-Type` mengikuti upstream image, fallback `image/jpeg`
+  - `Content-Disposition: attachment; filename="void-image-N.jpg"` atau nama image aman yang setara
+  - `Content-Length` jika tersedia
+- [x] Pastikan download gambar tidak hilang ekstensi melalui filename berbasis `Content-Type` atau ekstensi URL.
+- [x] Jangan mengubah validasi URL, alur video, audio, Instagram cookies, atau normalisasi video.
+
+### Frontend - Hapus Daftar JPG Per-Image (Selesai)
+
+- [x] Audit render list download di:
+  - `frontend/src/components/ResultCard.jsx`
+  - `frontend/src/components/SlideshowPreview.jsx`
+  - `frontend/src/components/DownloadButton.jsx` jika format filename perlu disesuaikan
+- [x] Hapus hanya daftar tombol:
+  - `JPG / SLIDESHOW IMAGE 1`
+  - `JPG / SLIDESHOW IMAGE 2`
+  - `JPG / SLIDESHOW IMAGE N`
+- [x] Pertahankan:
+  - Slideshow viewer
+  - navigasi slide
+  - tombol `DOWNLOAD SLIDE INI` di slideshow viewer
+  - tombol MP4 video
+  - AudioPreview
+  - tombol MP3 audio only
+- [x] Jangan mengubah desain besar-besaran dan jangan menambah dependency.
+
+### Verifikasi Tahap 8
+
+- Download satu gambar slideshow menghasilkan file `.jpg`.
+- File gambar bisa dibuka dan ukurannya wajar.
+- Tidak ada lagi daftar panjang tombol `JPG / SLIDESHOW IMAGE N` di result card.
+- Tombol `DOWNLOAD SLIDE INI` tetap berfungsi.
+- Download MP4 tetap berfungsi.
+- Download MP3 tetap berfungsi.
+- `npm run build` berhasil tanpa error.
+
+Output: bug download slideshow selesai tanpa regresi pada video, audio, image carousel, dan flow utama.
+
+BERHENTI, tunggu konfirmasi.
+
+---
+
 ## Checklist Acceptance Criteria (dicek di Tahap 7)
 
-- [ ] Website tetap bisa submit URL dan trigger download flow
-- [ ] Loading state muncul saat proses berlangsung
-- [ ] Error state tampil jelas jika URL invalid atau API gagal
-- [ ] Result card menampilkan preview, judul, platform badge, tombol download
-- [ ] Slideshow tetap tampil jika result berupa gambar
-- [ ] Audio preview tetap tampil jika ada audio only
-- [ ] Tombol GRAB paling mencolok saat belum ada result
-- [ ] Background tidak monoton hitam di semua section
-- [ ] Minimal 4 warna berbeda dipakai sebagai background section
-- [ ] Tidak ada section yang kosong di desktop
-- [ ] Mobile layout tidak overflow
-- [ ] Feature cards grid 2 kolom di mobile
-- [ ] Platform support section ada
-- [ ] FAQ section ada minimal 5 pertanyaan
-- [ ] Footer ada dan tidak kosong
-- [ ] Tidak ada perubahan backend
-- [ ] `npm run build` berhasil tanpa error
+- [x] Website tetap bisa submit URL dan trigger download flow
+- [x] Loading state muncul saat proses berlangsung
+- [x] Error state tampil jelas jika URL invalid atau API gagal
+- [x] Result card menampilkan preview, judul, platform badge, tombol download
+- [x] Slideshow tetap tampil jika result berupa gambar
+- [x] Audio preview tetap tampil jika ada audio only
+- [x] Tombol GRAB paling mencolok saat belum ada result
+- [x] Background tidak monoton hitam di semua section
+- [x] Minimal 4 warna berbeda dipakai sebagai background section
+- [x] Tidak ada section yang kosong di desktop
+- [x] Mobile layout tidak overflow
+- [x] Feature cards grid 2 kolom di mobile
+- [x] Platform support section ada
+- [x] FAQ section ada minimal 5 pertanyaan
+- [x] Footer ada dan tidak kosong
+- [x] Tidak ada perubahan backend
+- [x] `npm run build` berhasil tanpa error
+
+## Checklist Tambahan Tahap 8
+
+- [ ] Download gambar slideshow menghasilkan file `.jpg` yang bisa dibuka
+- [ ] Ukuran file gambar slideshow wajar, bukan 2-13 KB
+- [x] Daftar tombol `JPG / SLIDESHOW IMAGE N` tidak tampil lagi di result card
+- [x] Tombol `DOWNLOAD SLIDE INI` tetap berfungsi
+- [ ] Download MP4 tetap berfungsi
+- [ ] Download MP3 tetap berfungsi
+- [x] `npm run build` berhasil tanpa error setelah fix
