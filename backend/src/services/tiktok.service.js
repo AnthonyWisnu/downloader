@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const { downloadUrlToFile, getOrCreateNormalizedVideo } = require("./video-cache.service");
 
 const DOWNLOAD_CACHE_DIR = path.join(os.tmpdir(), "void-dl-cache");
 
@@ -86,6 +87,19 @@ function logAudioFallbackError(error) {
   process.stderr.write(`[tiktok] audio fallback failed: ${firstLine.slice(0, 180)}\n`);
 }
 
+function getHostLabel(rawUrl) {
+  try {
+    return new URL(rawUrl).hostname;
+  } catch {
+    return "invalid-host";
+  }
+}
+
+function logVideoNormalizeFallback(error, videoUrl) {
+  const message = String(error?.message || "").slice(0, 180);
+  process.stderr.write(`[tiktok] video normalize fallback host=${getHostLabel(videoUrl)} reason=${message}\n`);
+}
+
 async function downloadAudioWithYtDlp(url) {
   ensureDownloadCacheDir();
 
@@ -124,6 +138,41 @@ async function downloadAudioWithYtDlp(url) {
   };
 }
 
+async function createNormalizedVideoDownload(videoUrl, label) {
+  try {
+    const videoFile = await getOrCreateNormalizedVideo({
+      sourceKey: `tiktok-video:${videoUrl}`,
+      sourceExtension: "mp4",
+      platform: "tiktok",
+      createSource(sourcePath) {
+        return downloadUrlToFile(videoUrl, sourcePath, {
+          Referer: "https://www.tiktok.com/"
+        });
+      }
+    });
+
+    return {
+      download: {
+        label,
+        url: `/api/file?token=${videoFile.token}&download=1`,
+        format: "mp4"
+      },
+      previewUrl: `/api/file?token=${videoFile.token}`
+    };
+  } catch (error) {
+    logVideoNormalizeFallback(error, videoUrl);
+
+    return {
+      download: {
+        label: `${label} Fallback External`,
+        url: videoUrl,
+        format: "mp4"
+      },
+      previewUrl: ""
+    };
+  }
+}
+
 function findMediaUrlByKeyword(items, keywords) {
   if (!Array.isArray(items)) {
     return "";
@@ -152,6 +201,7 @@ function findMediaUrlByKeyword(items, keywords) {
 async function collectDownloads(result, sourceUrl) {
   const payload = result.result || result.data || result;
   const downloads = [];
+  let previewUrl = "";
 
   const videoUrl = firstString(
     payload.videoHD,
@@ -169,11 +219,9 @@ async function collectDownloads(result, sourceUrl) {
   );
 
   if (videoUrl) {
-    downloads.push({
-      label: "Video (No Watermark)",
-      url: videoUrl,
-      format: "mp4"
-    });
+    const normalizedVideo = await createNormalizedVideoDownload(videoUrl, "Video (No Watermark)");
+    downloads.push(normalizedVideo.download);
+    previewUrl = normalizedVideo.previewUrl;
   }
 
   const watermarkUrl = firstString(
@@ -185,11 +233,9 @@ async function collectDownloads(result, sourceUrl) {
   );
 
   if (watermarkUrl) {
-    downloads.push({
-      label: "Video (Watermark)",
-      url: watermarkUrl,
-      format: "mp4"
-    });
+    const normalizedWatermarkVideo = await createNormalizedVideoDownload(watermarkUrl, "Video (Watermark)");
+    downloads.push(normalizedWatermarkVideo.download);
+    previewUrl = previewUrl || normalizedWatermarkVideo.previewUrl;
   }
 
   const audioUrl = firstString(
@@ -255,7 +301,10 @@ async function collectDownloads(result, sourceUrl) {
     });
   }
 
-  return downloads;
+  return {
+    downloads,
+    previewUrl
+  };
 }
 
 function getMetadata(result) {
@@ -282,7 +331,8 @@ async function downloadTikTok(url) {
   }
 
   const result = await downloader(url, { version: "v1" });
-  const downloads = await collectDownloads(result, url);
+  const collected = await collectDownloads(result, url);
+  const downloads = collected.downloads;
 
   if (downloads.length === 0) {
     throw new Error("URL tidak valid atau konten tidak dapat diakses");
@@ -296,6 +346,7 @@ async function downloadTikTok(url) {
     type: hasImages ? "slideshow" : "video",
     title: metadata.title,
     thumbnail: metadata.thumbnail,
+    previewUrl: collected.previewUrl || undefined,
     downloads
   };
 }

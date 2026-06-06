@@ -1,14 +1,13 @@
 const { execFile } = require("child_process");
-const crypto = require("crypto");
 const fs = require("fs");
 const { instagramGetUrl } = require("instagram-url-direct");
-const os = require("os");
 const path = require("path");
 const { validateInstagramCookies } = require("./cookies.service");
+const { getOrCreateNormalizedVideo } = require("./video-cache.service");
 
-const DOWNLOAD_CACHE_DIR = path.join(os.tmpdir(), "void-dl-cache");
-const MERGE_FORMAT =
-  "best[ext=mp4][acodec!=none][vcodec!=none]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best";
+const PRIMARY_MERGE_FORMAT =
+  "bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a]/best[ext=mp4][vcodec^=avc1]/best[ext=mp4]/best";
+const FALLBACK_MERGE_FORMAT = "bestvideo+bestaudio/best";
 const OUTPUT_EXTENSIONS = ["mp4", "mkv", "webm"];
 
 function runYtDlp(args) {
@@ -95,18 +94,6 @@ function parseYtDlpJson(output) {
 
 function isHttpUrl(value) {
   return typeof value === "string" && /^https?:\/\//i.test(value);
-}
-
-function ensureDownloadCacheDir() {
-  fs.mkdirSync(DOWNLOAD_CACHE_DIR, { recursive: true });
-}
-
-function getDownloadToken(url) {
-  return crypto.createHash("sha256").update(url).digest("hex").slice(0, 32);
-}
-
-function getCachedDownloadPath(token) {
-  return path.join(DOWNLOAD_CACHE_DIR, `${token}.mp4`);
 }
 
 function getItems(metadata) {
@@ -235,17 +222,8 @@ async function fetchYtDlpMetadata(url, cookiesPath) {
   return parseYtDlpJson(output);
 }
 
-async function downloadWithMerge(url, cookiesPath) {
-  ensureDownloadCacheDir();
-
-  const token = getDownloadToken(url);
-  const outputPath = getCachedDownloadPath(token);
-
-  if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
-    return outputPath;
-  }
-
-  const outputBase = path.join(DOWNLOAD_CACHE_DIR, token);
+async function runYtDlpVideoDownload(url, cookiesPath, sourcePath, format) {
+  const outputBase = sourcePath.replace(/\.[^.]+$/, "");
   const outputTemplate = `${outputBase}.%(ext)s`;
   const candidatePaths = OUTPUT_EXTENSIONS.map((extension) => `${outputBase}.${extension}`);
 
@@ -261,7 +239,7 @@ async function downloadWithMerge(url, cookiesPath) {
     "--no-warnings",
     "--no-playlist",
     "--format",
-    MERGE_FORMAT,
+    format,
     "--merge-output-format",
     "mp4",
     "--output",
@@ -269,19 +247,39 @@ async function downloadWithMerge(url, cookiesPath) {
     url
   ]);
 
-  const mergedPath = candidatePaths.find((candidatePath) =>
+  return candidatePaths.find((candidatePath) =>
     fs.existsSync(candidatePath) && fs.statSync(candidatePath).size > 0
   );
+}
+
+async function createInstagramSourceVideo(url, cookiesPath, sourcePath) {
+  let mergedPath;
+
+  try {
+    mergedPath = await runYtDlpVideoDownload(url, cookiesPath, sourcePath, PRIMARY_MERGE_FORMAT);
+  } catch (error) {
+    logYtDlpStderr(error);
+    mergedPath = await runYtDlpVideoDownload(url, cookiesPath, sourcePath, FALLBACK_MERGE_FORMAT);
+  }
 
   if (!mergedPath) {
     throw new Error("Merged file kosong");
   }
 
-  if (mergedPath !== outputPath) {
-    fs.renameSync(mergedPath, outputPath);
+  if (mergedPath !== sourcePath) {
+    fs.renameSync(mergedPath, sourcePath);
   }
+}
 
-  return outputPath;
+async function downloadWithMerge(url, cookiesPath) {
+  return getOrCreateNormalizedVideo({
+    sourceKey: url,
+    sourceExtension: "mp4",
+    platform: "instagram",
+    createSource(sourcePath) {
+      return createInstagramSourceVideo(url, cookiesPath, sourcePath);
+    }
+  });
 }
 
 function detectPhotoFormat(url) {
@@ -353,9 +351,8 @@ async function downloadInstagram(url) {
       throw new Error("No video formats found");
     }
 
-    await downloadWithMerge(url, cookies.path);
-
-    const token = getDownloadToken(url);
+    const videoFile = await downloadWithMerge(url, cookies.path);
+    const token = videoFile.token;
     const hasAudio = hasAudioStream(metadata);
     const label = hasAudio ? "MP4 / VIDEO" : "MP4 / VIDEO (NO AUDIO)";
     const responseDownloads = [

@@ -44,10 +44,12 @@ function streamFile(req, res, filePath, fileType) {
   }
 
   const [startRaw, endRaw] = range.replace(/bytes=/, "").split("-");
-  const start = Number(startRaw);
-  const end = endRaw ? Number(endRaw) : stat.size - 1;
+  const suffixLength = startRaw === "" ? Number(endRaw) : null;
+  const start = suffixLength ? Math.max(stat.size - suffixLength, 0) : Number(startRaw);
+  const requestedEnd = endRaw && startRaw !== "" ? Number(endRaw) : stat.size - 1;
+  const end = Math.min(requestedEnd, stat.size - 1);
 
-  if (Number.isNaN(start) || Number.isNaN(end) || start >= stat.size || end >= stat.size) {
+  if (Number.isNaN(start) || Number.isNaN(end) || start >= stat.size || start > end) {
     res.status(416).end();
     return;
   }

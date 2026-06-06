@@ -28,6 +28,7 @@ Backend:
 - dotenv
 - `@tobyg74/tiktok-api-dl`
 - `yt-dlp` as a system dependency for Instagram
+- `ffmpeg` and `ffprobe` as system dependencies for iPhone-safe video output
 
 Production:
 - Ubuntu 22.04 or 24.04
@@ -217,7 +218,8 @@ Install server dependencies:
 ```bash
 apt update && apt upgrade -y
 apt install -y curl git nginx python3 build-essential pkg-config \
-  libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+  libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev \
+  ffmpeg
 ```
 
 Install PM2 and `yt-dlp`:
@@ -230,6 +232,8 @@ curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
 
 chmod a+rx /usr/local/bin/yt-dlp
 yt-dlp --version
+ffmpeg -version
+ffprobe -version
 ```
 
 Clone and install:
