@@ -1,7 +1,9 @@
 const dns = require("dns/promises");
 const net = require("net");
+const fs = require("fs");
 const axios = require("axios");
 const { downloadFile } = require("./file.controller");
+const { convertWebpStreamToJpeg } = require("../services/image-download.service");
 
 const DEFAULT_ERROR = "Media tidak dapat diputar";
 const CONTENT_TYPE_EXTENSIONS = {
@@ -184,6 +186,19 @@ function setProxyHeaders(res, upstream, shouldDownload, parsedUrl) {
   }
 }
 
+async function sendConvertedWebpDownload(res, upstream) {
+  const converted = await convertWebpStreamToJpeg(upstream.data);
+  const stat = fs.statSync(converted.outputPath);
+
+  res.setHeader("Content-Type", "image/jpeg");
+  res.setHeader("Content-Length", stat.size);
+  res.setHeader("Content-Disposition", "attachment; filename=\"void-image.jpg\"");
+
+  const outputStream = fs.createReadStream(converted.outputPath);
+  outputStream.on("close", converted.cleanup);
+  outputStream.pipe(res);
+}
+
 async function proxyMedia(req, res) {
   try {
     if (typeof req.query.url === "string" && req.query.url.startsWith("/api/file?")) {
@@ -208,6 +223,13 @@ async function proxyMedia(req, res) {
     });
 
     res.status(upstream.status);
+    const upstreamContentType = getContentType(upstream, parsedUrl).toLowerCase();
+
+    if (shouldDownload && upstreamContentType === "image/webp") {
+      await sendConvertedWebpDownload(res, upstream);
+      return;
+    }
+
     setProxyHeaders(res, upstream, shouldDownload, parsedUrl);
     upstream.data.pipe(res);
   } catch (error) {
