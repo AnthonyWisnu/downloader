@@ -10,52 +10,56 @@ function UrlInput({
   onSubmit
 }) {
   const hasError = Boolean(error);
-  const inputClassName = hasError ? "url-input-field has-error" : "url-input-field";
-  const errorLabel = String(error || "").startsWith("ERR:") ? error : `ERR: ${error}`;
-  const statusLabel =
-    detectedPlatform && detectedPlatform !== "unknown"
-      ? platformLabel(detectedPlatform)
-      : "WAITING";
+  const hasPlatform = detectedPlatform && detectedPlatform !== "unknown";
+  const statusBadgeClass =
+    detectedPlatform === "tiktok"
+      ? "badge-cyan"
+      : detectedPlatform === "instagram"
+        ? "badge-pink"
+        : "badge-yellow";
 
   return (
-    <section className="url-input-section" aria-label="Download form">
-      <form className="url-input-form" onSubmit={onSubmit}>
-        <div className="url-input-row">
-          <input
-            className={inputClassName}
-            type="url"
-            value={value}
-            placeholder="PASTE URL HERE_"
-            autoComplete="off"
-            spellCheck="false"
-            aria-invalid={hasError}
-            aria-describedby={hasError ? "url-input-error" : "url-input-status"}
-            disabled={isLoading}
-            onChange={(event) => onChange(event.target.value)}
-          />
+    <form className="url-form" onSubmit={onSubmit}>
+      <label className="sr-only" htmlFor="url-input">
+        URL TikTok atau Instagram
+      </label>
 
-          <button
-            className="grab-button"
-            type="submit"
-            disabled={!canSubmit}
-            aria-label="Grab download links"
-          >
-            {isLoading ? "[ ... ]" : "[ GRAB ]"}
-          </button>
-        </div>
+      <input
+        id="url-input"
+        className={hasError ? "url-field has-error" : "url-field"}
+        type="url"
+        value={value}
+        placeholder="Tempel link TikTok atau Instagram di sini..."
+        autoComplete="off"
+        spellCheck="false"
+        aria-invalid={hasError}
+        disabled={isLoading}
+        onChange={(event) => onChange(event.target.value)}
+      />
 
-        <div className="url-input-meta" id="url-input-status">
-          <span>INPUT: {value ? "READY" : "EMPTY"}</span>
-          <span>PLATFORM: {statusLabel}</span>
-        </div>
+      <p className="url-microcopy mono">
+        Mendukung TikTok video, Instagram Reels, Post, dan Story
+      </p>
 
-        {hasError ? (
-          <p className="url-input-error" id="url-input-error">
-            {errorLabel}
-          </p>
-        ) : null}
-      </form>
-    </section>
+      <button
+        className="url-grab btn btn-block"
+        type="submit"
+        disabled={!canSubmit}
+        aria-label="Grab konten"
+      >
+        {isLoading ? "GRABBING..." : "GRAB"}
+      </button>
+
+      <div className="url-status mono" aria-live="polite">
+        {hasPlatform ? (
+          <span className={`badge ${statusBadgeClass}`}>
+            PLATFORM: {platformLabel(detectedPlatform)}
+          </span>
+        ) : (
+          <span className="url-status-empty">INPUT: KOSONG</span>
+        )}
+      </div>
+    </form>
   );
 }
 

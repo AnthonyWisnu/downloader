@@ -1,0 +1,198 @@
+/* ==========================================================================
+   VOID Design System - Utilities
+   Utility class custom yang dipakai lintas komponen.
+   Komponen tetap boleh punya class sendiri untuk styling spesifik.
+   ========================================================================== */
+
+/* Layout section ---------------------------------------------------------- */
+.section {
+  width: 100%;
+  padding: var(--space-xl) var(--space-md);
+}
+
+.section-inner {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+/* Background section ------------------------------------------------------- */
+.bg-ink {
+  background: var(--ink);
+  color: var(--off-white);
+}
+
+.bg-yellow {
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+.bg-off-white {
+  background: var(--off-white);
+  color: var(--ink);
+}
+
+.bg-purple {
+  background: var(--purple);
+  color: var(--white);
+}
+
+/* Label section ----------------------------------------------------------- */
+.section-label {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border: var(--border-thick);
+  background: var(--ink);
+  color: var(--off-white);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Badge -------------------------------------------------------------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border: var(--border-thick);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.badge-yellow {
+  background: var(--yellow);
+}
+
+.badge-cyan {
+  background: var(--cyan);
+}
+
+.badge-pink {
+  background: var(--pink);
+}
+
+.badge-lime {
+  background: var(--lime);
+}
+
+.badge-orange {
+  background: var(--orange);
+}
+
+.badge-purple {
+  background: var(--purple);
+  color: var(--white);
+}
+
+/* Card --------------------------------------------------------------------- */
+.card {
+  border: var(--border-thick);
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+}
+
+.card-hover:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-hover:active {
+  transform: translate(2px, 2px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Button brutalist --------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 14px 24px;
+  border: var(--border-thick);
+  background: var(--ink);
+  color: var(--off-white);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-yellow {
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* Text helpers ------------------------------------------------------------- */
+.mono {
+  font-family: var(--font-mono);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.heading-xl {
+  font-size: var(--text-h2);
+  font-weight: 700;
+}
+
+/* Grid responsif ----------------------------------------------------------- */
+.grid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 768px) {
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Visually hidden ---------------------------------------------------------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

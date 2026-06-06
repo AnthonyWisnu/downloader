@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { getMediaUrl } from "../utils/mediaProxy";
 
 function getCounter(index, total) {
@@ -20,9 +21,7 @@ function SlideshowPreview({ slides }) {
       return;
     }
 
-    setActiveIndex((currentIndex) =>
-      currentIndex === 0 ? slides.length - 1 : currentIndex - 1
-    );
+    setActiveIndex((current) => (current === 0 ? slides.length - 1 : current - 1));
   }
 
   function showNext() {
@@ -30,13 +29,11 @@ function SlideshowPreview({ slides }) {
       return;
     }
 
-    setActiveIndex((currentIndex) =>
-      currentIndex === slides.length - 1 ? 0 : currentIndex + 1
-    );
+    setActiveIndex((current) => (current === slides.length - 1 ? 0 : current + 1));
   }
 
   return (
-    <div className="slideshow-preview">
+    <div className="slideshow">
       <div className="slideshow-frame">
         <img
           className="slideshow-image"
@@ -45,28 +42,41 @@ function SlideshowPreview({ slides }) {
           loading="lazy"
         />
 
-        <div className="slideshow-nav" aria-label="Slideshow navigation">
-          <button className="slideshow-nav-button" type="button" onClick={showPrevious}>
-            [ &lt; ]
-          </button>
-          <button className="slideshow-nav-button" type="button" onClick={showNext}>
-            [ &gt; ]
-          </button>
-        </div>
+        {canNavigate ? (
+          <div className="slideshow-nav" aria-label="Navigasi slideshow">
+            <button
+              className="slideshow-nav-button"
+              type="button"
+              onClick={showPrevious}
+              aria-label="Slide sebelumnya"
+            >
+              <ChevronLeft size={20} strokeWidth={3} />
+            </button>
+            <button
+              className="slideshow-nav-button"
+              type="button"
+              onClick={showNext}
+              aria-label="Slide berikutnya"
+            >
+              <ChevronRight size={20} strokeWidth={3} />
+            </button>
+          </div>
+        ) : null}
 
-        <span className="slideshow-counter">
+        <span className="slideshow-counter mono">
           {getCounter(activeIndex, slides.length)}
         </span>
       </div>
 
       <a
-        className="slideshow-active-download"
+        className="slideshow-download btn btn-yellow btn-block"
         href={getMediaUrl(activeSlide.url, { download: true })}
         target="_blank"
         rel="noreferrer"
         download
       >
-        [ DOWNLOAD THIS SLIDE ]
+        <Download size={18} strokeWidth={2.5} aria-hidden="true" />
+        Download Slide Ini
       </a>
     </div>
   );

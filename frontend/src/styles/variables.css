@@ -1,0 +1,65 @@
+/* ==========================================================================
+   VOID Design System - Variables
+   Palet warna, border, shadow, radius, dan font untuk seluruh aplikasi.
+   Jangan hardcode nilai warna di komponen, selalu rujuk variabel di sini.
+   ========================================================================== */
+
+:root {
+  /* Warna dasar */
+  --ink: #111111;
+  --off-white: #fff8e7;
+  --white: #ffffff;
+
+  /* Warna aksen */
+  --yellow: #ffd84d;
+  --pink: #ff5fa2;
+  --purple: #8b5cf6;
+  --cyan: #38d5ff;
+  --lime: #9cff57;
+  --orange: #ff8a3d;
+
+  /* Warna status */
+  --status-ok: var(--lime);
+  --status-error: var(--pink);
+
+  /* Border */
+  --border: 2px solid var(--ink);
+  --border-thick: 3px solid var(--ink);
+  --border-width: 2px;
+  --border-width-thick: 3px;
+
+  /* Shadow brutalist */
+  --shadow-sm: 3px 3px 0px var(--ink);
+  --shadow-md: 5px 5px 0px var(--ink);
+  --shadow-lg: 8px 8px 0px var(--ink);
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+
+  /* Font */
+  --font-display: "Space Grotesk", "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", monospace;
+
+  /* Skala teks */
+  --text-hero: clamp(5rem, 18vw, 8rem);
+  --text-h2: clamp(1.75rem, 5vw, 3rem);
+  --text-h3: clamp(1.1rem, 2.5vw, 1.4rem);
+  --text-body: 1rem;
+  --text-small: 0.85rem;
+  --text-label: 0.75rem;
+
+  /* Spacing */
+  --space-xs: 8px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 48px;
+  --space-xl: 80px;
+
+  /* Layout */
+  --max-width: 1100px;
+  --panel-width: 640px;
+
+  /* Transisi */
+  --transition: all 0.15s ease;
+}

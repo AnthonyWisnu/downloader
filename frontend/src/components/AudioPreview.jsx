@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Music } from "lucide-react";
 import { getMediaUrl } from "../utils/mediaProxy";
 
 function AudioPreview({ download }) {
@@ -9,10 +10,14 @@ function AudioPreview({ download }) {
   }
 
   return (
-    <div className="audio-preview-row">
-      <span className="audio-preview-label">AUDIO PREVIEW</span>
+    <div className="audio-card">
+      <span className="audio-card-label">
+        <Music size={18} strokeWidth={2.5} aria-hidden="true" />
+        Audio Preview
+      </span>
+
       <audio
-        className="audio-preview-player"
+        className="audio-card-player"
         src={getMediaUrl(download.url)}
         controls
         preload="metadata"

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Play, VolumeX, X } from "lucide-react";
 import AudioPreview from "./AudioPreview";
 import DownloadButton from "./DownloadButton";
 import PlatformBadge from "./PlatformBadge";
@@ -54,10 +55,10 @@ function PreviewModal({ previewDownload, result, onClose }) {
   const previewUrl = result.previewUrl || getMediaUrl(previewDownload.url);
 
   return (
-    <div className="preview-modal" role="dialog" aria-modal="true" aria-label="Video preview">
+    <div className="preview-modal" role="dialog" aria-modal="true" aria-label="Preview video">
       <div className="preview-modal-panel">
-        <button className="preview-close" type="button" onClick={onClose}>
-          [ CLOSE ]
+        <button className="preview-close" type="button" onClick={onClose} aria-label="Tutup preview">
+          <X size={20} strokeWidth={2.5} />
         </button>
 
         <video
@@ -92,14 +93,11 @@ function ResultCard({ result }) {
   const mediaClassName = getMediaClassName(result);
 
   return (
-    <section className="result-card" aria-label="Download result">
+    <section className="result-card" aria-label="Detail hasil download">
       <header className="result-header">
         <PlatformBadge platform={result.platform} type={result.type} />
-        <span className="result-header-divider" aria-hidden="true" />
-        <span className="result-type">{type}</span>
+        <span className="result-type mono">{type}</span>
       </header>
-
-      <div className="result-separator" />
 
       {!hasImagePreview && (previewDownload || hasThumbnail) ? (
         <div className={mediaClassName}>
@@ -108,6 +106,7 @@ function ResultCard({ result }) {
               className="media-preview-button"
               type="button"
               onClick={() => setIsPreviewOpen(true)}
+              aria-label="Putar preview video"
             >
               <video
                 className="media-video"
@@ -117,7 +116,10 @@ function ResultCard({ result }) {
                 preload="metadata"
                 playsInline
               />
-              <span className="media-preview-label">[ PREVIEW ]</span>
+              <span className="media-preview-label">
+                <Play size={18} strokeWidth={2.5} aria-hidden="true" />
+                PREVIEW
+              </span>
             </button>
           ) : (
             <img className="media-image" src={result.thumbnail} alt="" loading="lazy" />
@@ -129,11 +131,7 @@ function ResultCard({ result }) {
         {result.title}
       </p>
 
-      <div className="result-separator" />
-
-      {hasImagePreview ? (
-        <SlideshowPreview slides={imagePreviewDownloads} />
-      ) : null}
+      {hasImagePreview ? <SlideshowPreview slides={imagePreviewDownloads} /> : null}
 
       <div className="download-list">
         {downloads.map((download, index) => {
@@ -141,14 +139,13 @@ function ResultCard({ result }) {
 
           return (
             <div className="download-item" key={key}>
-              {isAudioDownload(download) ? (
-                <AudioPreview download={download} />
-              ) : null}
+              {isAudioDownload(download) ? <AudioPreview download={download} /> : null}
               <DownloadButton download={download} />
               {shouldShowAudioNotice(result, download) ? (
-                <p className="audio-status-note">
-                  AUDIO: TIDAK TERSEDIA (MUSIK DILINDUNGI PLATFORM)
-                </p>
+                <div className="audio-warning" role="note">
+                  <VolumeX size={18} strokeWidth={2.5} aria-hidden="true" />
+                  <span>Audio tidak tersedia, musik dilindungi platform.</span>
+                </div>
               ) : null}
             </div>
           );

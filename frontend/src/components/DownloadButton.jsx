@@ -1,3 +1,4 @@
+import { Download } from "lucide-react";
 import { getMediaUrl } from "../utils/mediaProxy";
 
 function formatLabel(download) {
@@ -18,19 +19,20 @@ function DownloadButton({ download }) {
 
   return (
     <div className="download-row">
-      <div className="download-label" title={label}>
-        [{label}]
-      </div>
+      <span className="download-label mono" title={label}>
+        {label}
+      </span>
 
       <a
-        className={isDisabled ? "download-action is-disabled" : "download-action"}
+        className={isDisabled ? "download-action btn btn-yellow is-disabled" : "download-action btn btn-yellow"}
         href={href}
         target="_blank"
         rel="noreferrer"
         download
         aria-disabled={isDisabled}
       >
-        [ DOWNLOAD ]
+        <Download size={18} strokeWidth={2.5} aria-hidden="true" />
+        Download
       </a>
     </div>
   );

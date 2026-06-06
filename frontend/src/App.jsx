@@ -1,24 +1,22 @@
-import WhyVoid from "./components/FeatureSection";
-import HowItWorks from "./components/HowItWorks";
-import LoadingSpinner from "./components/LoadingSpinner";
-import ResultCard from "./components/ResultCard";
-import UrlInput from "./components/UrlInput";
+import DownloaderPanel from "./components/DownloaderPanel";
+import FAQSection from "./components/FAQSection";
+import FeatureGrid from "./components/FeatureGrid";
+import Footer from "./components/Footer";
+import HeroSection from "./components/HeroSection";
+import HowToSection from "./components/HowToSection";
+import PlatformSupport from "./components/PlatformSupport";
+import ResultSection from "./components/ResultSection";
 import useDownloader from "./hooks/useDownloader";
 
 function App() {
   const downloader = useDownloader();
 
   return (
-    <main className="app-shell">
-      <section className="hero-section">
-        <h1>VOID</h1>
-        <p>// download tiktok & instagram. no watermark. no bullshit.</p>
-      </section>
+    <main className="app">
+      <HeroSection />
 
-      <div className="page-separator" />
-
-      <UrlInput
-        value={downloader.url}
+      <DownloaderPanel
+        url={downloader.url}
         error={downloader.error}
         isLoading={downloader.isLoading}
         detectedPlatform={downloader.detectedPlatform}
@@ -27,23 +25,19 @@ function App() {
         onSubmit={downloader.submit}
       />
 
-      {downloader.isLoading ? (
-        <LoadingSpinner platform={downloader.detectedPlatform} />
+      {!downloader.isLoading && downloader.result ? (
+        <ResultSection result={downloader.result} onReset={downloader.reset} />
       ) : null}
-      {!downloader.isLoading ? <ResultCard result={downloader.result} /> : null}
 
-      <div className="section-separator" />
-      <HowItWorks />
+      <PlatformSupport />
 
-      <div className="section-separator" />
-      <WhyVoid />
+      <FeatureGrid />
 
-      <div className="section-separator" />
+      <HowToSection />
 
-      <footer className="app-footer">
-        <span>VOID v1.0.0</span>
-        <span>{downloader.serverLabel}</span>
-      </footer>
+      <FAQSection />
+
+      <Footer healthStatus={downloader.healthStatus} />
     </main>
   );
 }
