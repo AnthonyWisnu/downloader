@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const { getOrCreateMp3FromUrl } = require("./audio-cache.service");
 const { downloadUrlToFile, getOrCreateNormalizedVideo } = require("./video-cache.service");
 
 const DOWNLOAD_CACHE_DIR = path.join(os.tmpdir(), "void-dl-cache");
@@ -85,6 +86,11 @@ function logAudioFallbackError(error) {
 
   const firstLine = message.split(/\r?\n/).find(Boolean) || message;
   process.stderr.write(`[tiktok] audio fallback failed: ${firstLine.slice(0, 180)}\n`);
+}
+
+function logAudioConvertError(error, audioUrl) {
+  const message = String(error?.message || "").slice(0, 180);
+  process.stderr.write(`[tiktok] audio convert failed host=${getHostLabel(audioUrl)} reason=${message}\n`);
 }
 
 function getHostLabel(rawUrl) {
@@ -268,11 +274,31 @@ async function collectDownloads(result, sourceUrl) {
     payload.musicInfo?.downloadUrl
   );
   if (audioUrl) {
-    downloads.push({
-      label: "Audio Only",
-      url: audioUrl,
-      format: "mp3"
-    });
+    try {
+      const audioFile = await getOrCreateMp3FromUrl(`tiktok-audio-url:${audioUrl}`, audioUrl, {
+        Referer: "https://www.tiktok.com/"
+      });
+
+      downloads.push({
+        label: "Audio Only",
+        url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
+        format: "mp3"
+      });
+    } catch (error) {
+      logAudioConvertError(error, audioUrl);
+
+      try {
+        const audioFile = await downloadAudioWithYtDlp(sourceUrl);
+
+        downloads.push({
+          label: "Audio Only",
+          url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
+          format: "mp3"
+        });
+      } catch (fallbackError) {
+        logAudioFallbackError(fallbackError);
+      }
+    }
   } else if (videoUrl || watermarkUrl) {
     try {
       const audioFile = await downloadAudioWithYtDlp(sourceUrl);

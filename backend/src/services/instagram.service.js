@@ -2,6 +2,7 @@ const { execFile } = require("child_process");
 const fs = require("fs");
 const { instagramGetUrl } = require("instagram-url-direct");
 const path = require("path");
+const { getOrCreateMp3FromUrl } = require("./audio-cache.service");
 const { validateInstagramCookies } = require("./cookies.service");
 const { getOrCreateNormalizedVideo } = require("./video-cache.service");
 
@@ -44,6 +45,19 @@ function logYtDlpStderr(error) {
 
   const firstLine = stderr.split(/\r?\n/).find(Boolean) || stderr;
   console.warn(`[instagram] yt-dlp stderr: ${firstLine.slice(0, 240)}`);
+}
+
+function logAudioConvertError(error, audioUrl) {
+  const host = (() => {
+    try {
+      return new URL(audioUrl).hostname;
+    } catch {
+      return "invalid-host";
+    }
+  })();
+  const message = String(error?.message || "").slice(0, 180);
+
+  process.stderr.write(`[instagram] audio convert failed host=${host} reason=${message}\n`);
 }
 
 function normalizeInstagramError(error) {
@@ -363,14 +377,23 @@ async function downloadInstagram(url) {
       }
     ];
     const audioUrl = extractAudioUrl(metadata);
-    const audioStatus = audioUrl ? "available" : "unavailable";
+    let audioStatus = "unavailable";
 
     if (audioUrl) {
-      responseDownloads.push({
-        label: "Audio Only",
-        url: audioUrl,
-        format: "mp3"
-      });
+      try {
+        const audioFile = await getOrCreateMp3FromUrl(`instagram-audio-url:${audioUrl}`, audioUrl, {
+          Referer: "https://www.instagram.com/"
+        });
+
+        responseDownloads.push({
+          label: "Audio Only",
+          url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
+          format: "mp3"
+        });
+        audioStatus = "available";
+      } catch (audioError) {
+        logAudioConvertError(audioError, audioUrl);
+      }
     }
 
     return {
