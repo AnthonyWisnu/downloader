@@ -4,18 +4,13 @@ const path = require("path");
 const { getOrCreateMp3FromUrl } = require("./audio-cache.service");
 const { validateInstagramCookies } = require("./cookies.service");
 const { getOrCreateNormalizedVideo } = require("./video-cache.service");
-const { runYtDlp } = require("../utils/execTool");
+const { runYtDlp, parseYtDlpJson } = require("../utils/execTool");
+const { createServiceError } = require("../utils/errors");
 
 const PRIMARY_MERGE_FORMAT =
   "bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a]/best[ext=mp4][vcodec^=avc1]/best[ext=mp4]/best";
 const FALLBACK_MERGE_FORMAT = "bestvideo+bestaudio/best";
 const OUTPUT_EXTENSIONS = ["mp4", "mkv", "webm"];
-
-function createInstagramError(message, statusCode = 502) {
-  const error = new Error(message);
-  error.statusCode = statusCode;
-  return error;
-}
 
 function getRawError(error) {
   return [error?.stderr, error?.stdout, error?.message].filter(Boolean).join("\n");
@@ -49,11 +44,11 @@ function normalizeInstagramError(error) {
   const normalized = getRawError(error).toLowerCase();
 
   if (normalized.includes("http error 404")) {
-    return createInstagramError("ERR: Konten tidak ditemukan atau sudah dihapus", 404);
+    return createServiceError("Konten tidak ditemukan atau sudah dihapus", 404);
   }
 
   if (normalized.includes("login required")) {
-    return createInstagramError("ERR: Konten membutuhkan autentikasi", 401);
+    return createServiceError("Konten membutuhkan autentikasi", 401);
   }
 
   if (
@@ -61,34 +56,14 @@ function normalizeInstagramError(error) {
     normalized.includes("output json kosong") ||
     normalized.includes("unexpected end of json input")
   ) {
-    return createInstagramError("ERR: Gagal mengambil metadata, coba lagi");
+    return createServiceError("Gagal mengambil metadata, coba lagi");
   }
 
-  return createInstagramError("ERR: Gagal memproses URL Instagram");
+  return createServiceError("Gagal memproses URL Instagram");
 }
 
 function isNoVideoFormatsError(error) {
   return getRawError(error).toLowerCase().includes("no video formats found");
-}
-
-function parseYtDlpJson(output) {
-  const trimmedOutput = String(output || "").trim();
-
-  if (!trimmedOutput) {
-    throw new Error("Metadata Instagram kosong");
-  }
-
-  try {
-    return JSON.parse(trimmedOutput);
-  } catch {
-    const lines = trimmedOutput.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-
-    try {
-      return JSON.parse(lines[lines.length - 1]);
-    } catch {
-      throw new Error("Output JSON kosong");
-    }
-  }
 }
 
 function isHttpUrl(value) {
@@ -305,7 +280,7 @@ async function fetchIgPhoto(url) {
   try {
     data = await instagramGetUrl(url);
   } catch (error) {
-    throw createInstagramError("ERR: Konten tidak dapat diakses atau tidak didukung");
+    throw createServiceError("ERR: Konten tidak dapat diakses atau tidak didukung");
   }
 
   const urls = Array.isArray(data?.url_list) ? data.url_list : [];
@@ -322,7 +297,7 @@ async function fetchIgPhoto(url) {
     });
 
   if (downloads.length === 0) {
-    throw createInstagramError("ERR: Konten tidak dapat diakses atau tidak didukung");
+    throw createServiceError("ERR: Konten tidak dapat diakses atau tidak didukung");
   }
 
   return {
@@ -339,7 +314,7 @@ async function downloadInstagram(url) {
   const cookies = validateInstagramCookies();
 
   if (!cookies.ok) {
-    throw createInstagramError(`ERR: ${cookies.error}`, 500);
+    throw createServiceError(`ERR: ${cookies.error}`, 500);
   }
 
   try {

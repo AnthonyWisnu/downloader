@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
-const { runYtDlp } = require("../utils/execTool");
+const { runYtDlp, parseYtDlpJson } = require("../utils/execTool");
+const { createServiceError } = require("../utils/errors");
 const { validateYoutubeCookies } = require("./cookies.service");
 const { getOrCreateNormalizedVideo } = require("./video-cache.service");
 const {
@@ -17,51 +18,26 @@ const PRIMARY_MERGE_FORMAT =
 const FALLBACK_MERGE_FORMAT = "bestvideo+bestaudio/best";
 const OUTPUT_EXTENSIONS = ["mp4", "mkv", "webm"];
 
-function createYouTubeError(message, statusCode = 502) {
-  const error = new Error(message);
-  error.statusCode = statusCode;
-  return error;
-}
-
 function normalizeYouTubeError(error) {
   const raw = [error?.stderr, error?.stdout, error?.message].filter(Boolean).join("\n").toLowerCase();
 
   if (raw.includes("private video") || raw.includes("this video is private")) {
-    return createYouTubeError("ERR: Video tidak ditemukan atau bersifat privat", 404);
+    return createServiceError("Video tidak ditemukan atau bersifat privat", 404);
   }
 
   if (raw.includes("sign in to confirm you're not a bot") || raw.includes("confirm your age")) {
-    return createYouTubeError("ERR: Konten YouTube memerlukan autentikasi cookies", 401);
+    return createServiceError("Konten YouTube memerlukan autentikasi cookies", 401);
   }
 
   if (raw.includes("video unavailable") || raw.includes("this video is unavailable")) {
-    return createYouTubeError("ERR: Video YouTube tidak tersedia atau telah dihapus", 404);
+    return createServiceError("Video YouTube tidak tersedia atau telah dihapus", 404);
   }
 
   if (raw.includes("http error 404")) {
-    return createYouTubeError("ERR: Konten tidak ditemukan", 404);
+    return createServiceError("Konten tidak ditemukan", 404);
   }
 
-  return createYouTubeError("ERR: Gagal memproses URL YouTube");
-}
-
-function parseYtDlpJson(output) {
-  const trimmed = String(output || "").trim();
-
-  if (!trimmed) {
-    throw new Error("Metadata YouTube kosong");
-  }
-
-  try {
-    return JSON.parse(trimmed);
-  } catch {
-    const lines = trimmed.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-    try {
-      return JSON.parse(lines[lines.length - 1]);
-    } catch {
-      throw new Error("Output JSON YouTube tidak dapat dibaca");
-    }
-  }
+  return createServiceError("Gagal memproses URL YouTube");
 }
 
 function getCookieArgs() {

@@ -46,9 +46,29 @@ function runFfprobe(args, options = {}) {
   });
 }
 
+function parseYtDlpJson(output) {
+  const trimmed = String(output || "").trim();
+
+  if (!trimmed) {
+    throw new Error("Metadata JSON yt-dlp kosong");
+  }
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    const lines = trimmed.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    try {
+      return JSON.parse(lines[lines.length - 1]);
+    } catch {
+      throw new Error("Output JSON yt-dlp tidak dapat dibaca");
+    }
+  }
+}
+
 module.exports = {
   execTool,
   runYtDlp,
   runFfmpeg,
-  runFfprobe
+  runFfprobe,
+  parseYtDlpJson
 };

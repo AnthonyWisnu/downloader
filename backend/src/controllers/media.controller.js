@@ -211,6 +211,40 @@ async function sendConvertedWebpDownload(res, upstream) {
   outputStream.pipe(res);
 }
 
+async function fetchSecureUpstream(initialUrl, req, maxHops = 3) {
+  let currentUrl = initialUrl;
+  let hops = 0;
+
+  while (hops <= maxHops) {
+    const parsedUrl = await validateMediaUrl(currentUrl);
+    const headers = getRequestHeaders(req, parsedUrl);
+
+    const response = await axios.get(parsedUrl.toString(), {
+      headers,
+      responseType: "stream",
+      timeout: 60000,
+      maxRedirects: 0,
+      validateStatus(status) {
+        return (status >= 200 && status < 400) || [301, 302, 303, 307, 308].includes(status);
+      }
+    });
+
+    if ([301, 302, 303, 307, 308].includes(response.status)) {
+      const redirectLocation = response.headers.location;
+      if (!redirectLocation) {
+        throw new Error(DEFAULT_ERROR);
+      }
+      currentUrl = new URL(redirectLocation, parsedUrl).toString();
+      hops++;
+      continue;
+    }
+
+    return { response, parsedUrl };
+  }
+
+  throw new Error("Terlalu banyak redirect media");
+}
+
 async function proxyMedia(req, res) {
   try {
     if (typeof req.query.url === "string" && req.query.url.startsWith("/api/file?")) {
@@ -222,17 +256,8 @@ async function proxyMedia(req, res) {
       return;
     }
 
-    const parsedUrl = await validateMediaUrl(req.query.url);
     const shouldDownload = req.query.download === "1";
-    const upstream = await axios.get(parsedUrl.toString(), {
-      headers: getRequestHeaders(req, parsedUrl),
-      responseType: "stream",
-      timeout: 60000,
-      maxRedirects: 5,
-      validateStatus(status) {
-        return status >= 200 && status < 400;
-      }
-    });
+    const { response: upstream, parsedUrl } = await fetchSecureUpstream(req.query.url, req);
 
     res.status(upstream.status);
     const upstreamContentType = getContentType(upstream, parsedUrl).toLowerCase();

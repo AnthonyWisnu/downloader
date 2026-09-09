@@ -1,12 +1,15 @@
-const crypto = require("crypto");
 const fs = require("fs");
-const os = require("os");
 const path = require("path");
 const { getOrCreateMp3FromUrl } = require("./audio-cache.service");
 const { downloadUrlToFile, getOrCreateNormalizedVideo } = require("./video-cache.service");
+const {
+  DOWNLOAD_CACHE_DIR,
+  ensureCacheDir,
+  getCacheToken,
+  getCacheFilePath
+} = require("./media-cache.service");
 const { runYtDlp } = require("../utils/execTool");
-
-const DOWNLOAD_CACHE_DIR = path.join(os.tmpdir(), "void-dl-cache");
+const { createServiceError } = require("../utils/errors");
 
 function getDownloader() {
   const tiktokApi = require("@tobyg74/tiktok-api-dl");
@@ -55,49 +58,11 @@ function firstString(...values) {
   return "";
 }
 
-function ensureDownloadCacheDir() {
-  fs.mkdirSync(DOWNLOAD_CACHE_DIR, { recursive: true });
-}
-
-function getDownloadToken(url) {
-  return crypto.createHash("sha256").update(url).digest("hex").slice(0, 32);
-}
-
-
-function logAudioFallbackError(error) {
-  const message = String(error?.stderr || error?.message || "").trim();
-
-  if (!message) {
-    return;
-  }
-
-  const firstLine = message.split(/\r?\n/).find(Boolean) || message;
-  process.stderr.write(`[tiktok] audio fallback failed: ${firstLine.slice(0, 180)}\n`);
-}
-
-function logAudioConvertError(error, audioUrl) {
-  const message = String(error?.message || "").slice(0, 180);
-  process.stderr.write(`[tiktok] audio convert failed host=${getHostLabel(audioUrl)} reason=${message}\n`);
-}
-
-function getHostLabel(rawUrl) {
-  try {
-    return new URL(rawUrl).hostname;
-  } catch {
-    return "invalid-host";
-  }
-}
-
-function logVideoNormalizeFallback(error, videoUrl) {
-  const message = String(error?.message || "").slice(0, 180);
-  process.stderr.write(`[tiktok] video normalize fallback host=${getHostLabel(videoUrl)} reason=${message}\n`);
-}
-
 async function downloadAudioWithYtDlp(url) {
-  ensureDownloadCacheDir();
+  ensureCacheDir();
 
-  const token = getDownloadToken(`tiktok-audio:${url}`);
-  const outputPath = path.join(DOWNLOAD_CACHE_DIR, `${token}.mp3`);
+  const token = getCacheToken(`tiktok-audio:${url}`);
+  const outputPath = getCacheFilePath(token, "mp3");
 
   if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
     return {
@@ -340,7 +305,7 @@ async function downloadTikTok(url) {
   const downloader = getDownloader();
 
   if (typeof downloader !== "function") {
-    throw new Error("Downloader TikTok tidak tersedia");
+    throw createServiceError("Downloader TikTok tidak tersedia", 503);
   }
 
   const result = await downloader(url, { version: "v1" });
@@ -348,7 +313,7 @@ async function downloadTikTok(url) {
   const downloads = collected.downloads;
 
   if (downloads.length === 0) {
-    throw new Error("URL tidak valid atau konten tidak dapat diakses");
+    throw createServiceError("URL tidak valid atau konten tidak dapat diakses", 404);
   }
 
   const metadata = getMetadata(result);

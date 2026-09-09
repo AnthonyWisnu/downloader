@@ -15,6 +15,9 @@ const allowedOrigins = new Set(frontendUrl
   .map((origin) => origin.trim())
   .filter(Boolean));
 
+// Trust first proxy (Nginx) agar rate limiter dan req.ip akurat
+app.set("trust proxy", 1);
+
 app.use(
   cors({
     origin(origin, callback) {
@@ -32,7 +35,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use("/api", downloadRoutes);
 
 app.use("/api", (req, res) => {
-  res.status(404).json({ error: "Endpoint tidak ditemukan" });
+  res.status(404).json({ error: "ERR: Endpoint tidak ditemukan" });
 });
 
 app.use((error, req, res, next) => {
@@ -43,11 +46,43 @@ app.use((error, req, res, next) => {
   });
 });
 
+let cleanupTimer = null;
+
 if (require.main === module) {
   validateAllCookiesOnStartup();
   cleanupExpiredCache();
-  const server = app.listen(port);
+
+  // Jalankan pembersihan cache kedaluwarsa secara berkala setiap 30 menit
+  cleanupTimer = setInterval(() => {
+    try {
+      cleanupExpiredCache();
+    } catch (cleanupErr) {
+      process.stderr.write(`cache cleanup error: ${cleanupErr.message}\n`);
+    }
+  }, 30 * 60 * 1000);
+
+  if (cleanupTimer.unref) {
+    cleanupTimer.unref();
+  }
+
+  const server = app.listen(port, () => {
+    process.stdout.write(`VOID Downloader backend running on port ${port}\n`);
+  });
   server.timeout = 300000;
+
+  function handleShutdown(signal) {
+    process.stdout.write(`Received ${signal}, shutting down gracefully\n`);
+    if (cleanupTimer) {
+      clearInterval(cleanupTimer);
+    }
+    server.close(() => {
+      cleanupExpiredCache();
+      process.exit(0);
+    });
+  }
+
+  process.on("SIGTERM", () => handleShutdown("SIGTERM"));
+  process.on("SIGINT", () => handleShutdown("SIGINT"));
 }
 
 module.exports = app;

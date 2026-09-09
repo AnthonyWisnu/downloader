@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
-const { runYtDlp } = require("../utils/execTool");
+const { runYtDlp, parseYtDlpJson } = require("../utils/execTool");
+const { createServiceError } = require("../utils/errors");
 const { validateXCookies } = require("./cookies.service");
 const { getOrCreateNormalizedVideo } = require("./video-cache.service");
 const {
@@ -17,47 +18,22 @@ const PRIMARY_MERGE_FORMAT =
 const FALLBACK_MERGE_FORMAT = "best";
 const OUTPUT_EXTENSIONS = ["mp4", "mkv", "webm"];
 
-function createXError(message, statusCode = 502) {
-  const error = new Error(message);
-  error.statusCode = statusCode;
-  return error;
-}
-
 function normalizeXError(error) {
   const raw = [error?.stderr, error?.stdout, error?.message].filter(Boolean).join("\n").toLowerCase();
 
   if (raw.includes("status is not available") || raw.includes("not found") || raw.includes("http error 404")) {
-    return createXError("ERR: Tweet tidak ditemukan atau telah dihapus", 404);
+    return createServiceError("Tweet tidak ditemukan atau telah dihapus", 404);
   }
 
   if (raw.includes("age-restricted") || raw.includes("adult content") || raw.includes("login required") || raw.includes("sign in")) {
-    return createXError("ERR: Tweet ini memerlukan autentikasi cookies X (Twitter)", 401);
+    return createServiceError("Tweet ini memerlukan autentikasi cookies X (Twitter)", 401);
   }
 
   if (raw.includes("protected") || raw.includes("not authorized")) {
-    return createXError("ERR: Akun X ini bersifat privat atau dilindungi", 403);
+    return createServiceError("Akun X ini bersifat privat atau dilindungi", 403);
   }
 
-  return createXError("ERR: Gagal memproses URL X (Twitter)");
-}
-
-function parseYtDlpJson(output) {
-  const trimmed = String(output || "").trim();
-
-  if (!trimmed) {
-    throw new Error("Metadata X kosong");
-  }
-
-  try {
-    return JSON.parse(trimmed);
-  } catch {
-    const lines = trimmed.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-    try {
-      return JSON.parse(lines[lines.length - 1]);
-    } catch {
-      throw new Error("Output JSON X tidak dapat dibaca");
-    }
-  }
+  return createServiceError("Gagal memproses URL X (Twitter)");
 }
 
 function getCookieArgs() {
