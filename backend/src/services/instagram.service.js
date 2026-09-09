@@ -7,6 +7,9 @@ const { getOrCreateNormalizedVideo } = require("./video-cache.service");
 const { runYtDlp, parseYtDlpJson } = require("../utils/execTool");
 const { createServiceError } = require("../utils/errors");
 
+const BROWSER_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
 const PRIMARY_MERGE_FORMAT =
   "bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a]/best[ext=mp4][vcodec^=avc1]/best[ext=mp4]/best";
 const FALLBACK_MERGE_FORMAT = "bestvideo+bestaudio/best";
@@ -187,6 +190,8 @@ async function fetchYtDlpMetadata(url, cookiesPath) {
   const output = await runYtDlp([
     "--cookies",
     cookiesPath,
+    "--user-agent",
+    BROWSER_USER_AGENT,
     "--dump-json",
     "--no-warnings",
     "--no-playlist",
@@ -210,6 +215,8 @@ async function runYtDlpVideoDownload(url, cookiesPath, sourcePath, format) {
   await runYtDlp([
     "--cookies",
     cookiesPath,
+    "--user-agent",
+    BROWSER_USER_AGENT,
     "--no-warnings",
     "--no-playlist",
     "--format",

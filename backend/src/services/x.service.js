@@ -13,6 +13,9 @@ const {
   cleanupFiles
 } = require("./media-cache.service");
 
+const BROWSER_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
 const PRIMARY_MERGE_FORMAT =
   "best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best";
 const FALLBACK_MERGE_FORMAT = "best";
@@ -44,6 +47,8 @@ function getCookieArgs() {
 async function fetchXMetadata(url) {
   const args = [
     ...getCookieArgs(),
+    "--user-agent",
+    BROWSER_USER_AGENT,
     "--dump-json",
     "--no-warnings",
     "--no-playlist",
@@ -101,6 +106,21 @@ function extractImageUrls(metadata) {
   return Array.from(imageUrls);
 }
 
+function getTweetDownloads(metadata) {
+  const downloads = [];
+  const imageUrls = extractImageUrls(metadata);
+
+  imageUrls.forEach((imageUrl, index) => {
+    downloads.push({
+      label: `JPG / IMAGE ${index + 1}`,
+      url: imageUrl,
+      format: "jpg"
+    });
+  });
+
+  return downloads;
+}
+
 function hasAudioStream(metadata) {
   const formats = Array.isArray(metadata?.formats) ? metadata.formats : [];
   return formats.some((format) => {
@@ -127,6 +147,8 @@ async function runYtDlpVideoDownload(url, sourcePath, format) {
 
   const args = [
     ...getCookieArgs(),
+    "--user-agent",
+    BROWSER_USER_AGENT,
     "--no-warnings",
     "--no-playlist",
     "--format",
@@ -177,6 +199,8 @@ async function downloadXAudio(url) {
   const outputBase = path.join(DOWNLOAD_CACHE_DIR, token);
   const args = [
     ...getCookieArgs(),
+    "--user-agent",
+    BROWSER_USER_AGENT,
     "--no-warnings",
     "--no-playlist",
     "--extract-audio",

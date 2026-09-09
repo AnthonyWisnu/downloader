@@ -13,9 +13,12 @@ const {
   cleanupFiles
 } = require("./media-cache.service");
 
+const BROWSER_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
 const PRIMARY_MERGE_FORMAT =
   "bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a]/bestvideo[ext=mp4]+bestaudio/best[ext=mp4]/best";
-const FALLBACK_MERGE_FORMAT = "bestvideo+bestaudio/best";
+const FALLBACK_MERGE_FORMAT = "bestvideo+bestaudio/best/18";
 const OUTPUT_EXTENSIONS = ["mp4", "mkv", "webm"];
 
 function normalizeYouTubeError(error) {
@@ -48,6 +51,8 @@ function getCookieArgs() {
 async function fetchYouTubeMetadata(url) {
   const args = [
     ...getCookieArgs(),
+    "--user-agent",
+    BROWSER_USER_AGENT,
     "--dump-json",
     "--no-warnings",
     "--no-playlist",
@@ -67,6 +72,8 @@ async function runYtDlpVideoDownload(url, sourcePath, format) {
 
   const args = [
     ...getCookieArgs(),
+    "--user-agent",
+    BROWSER_USER_AGENT,
     "--no-warnings",
     "--no-playlist",
     "--format",
@@ -117,6 +124,8 @@ async function downloadYouTubeAudio(url) {
   const outputBase = path.join(DOWNLOAD_CACHE_DIR, token);
   const args = [
     ...getCookieArgs(),
+    "--user-agent",
+    BROWSER_USER_AGENT,
     "--no-warnings",
     "--no-playlist",
     "--extract-audio",
