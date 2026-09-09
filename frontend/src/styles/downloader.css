@@ -1,11 +1,10 @@
 /* ==========================================================================
-   VOID Design System - Downloader Section & Input (Vibrant Reactive Identity)
+   VOID Design System - Downloader Section & Command Deck (Cyber-Studio 2.0)
    ========================================================================== */
 
 .downloader-section {
-  background-color: var(--bg);
   border-bottom: 1px solid var(--border-color);
-  padding: var(--space-xl) var(--space-md);
+  padding: var(--space-lg) var(--space-md);
   position: relative;
 }
 
@@ -13,27 +12,43 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  max-width: var(--max-width);
+  margin: 0 auto;
 }
 
 .downloader-tag-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--text-label);
+  font-size: 0.72rem;
   letter-spacing: var(--tracking-mono);
 }
 
-.downloader-sys-spec {
-  color: var(--text-muted);
-  font-size: var(--text-label);
+.downloader-tag-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--platform-color);
 }
 
+.downloader-tag-icon {
+  color: var(--platform-color);
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+.downloader-sys-spec {
+  color: var(--text-dim);
+}
+
+/* Deck Panel -------------------------------------------------------------- */
 .downloader-panel {
   width: 100%;
-  background-color: var(--surface-card);
-  border: 1px solid var(--border-color);
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color-light);
   padding: var(--space-lg);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
   position: relative;
   overflow: hidden;
 }
@@ -46,15 +61,32 @@
   right: 0;
   height: 2px;
   background: var(--platform-color);
-  box-shadow: 0 0 12px var(--platform-glow);
+  box-shadow: 0 0 16px var(--platform-glow);
   transition: background 0.3s ease, box-shadow 0.3s ease;
 }
+
+/* Tactical Corner Crosshairs */
+.deck-corner {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--border-color-light);
+  user-select: none;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.deck-corner-tl { top: 6px; left: 8px; }
+.deck-corner-tr { top: 6px; right: 8px; }
+.deck-corner-bl { bottom: 6px; left: 8px; }
+.deck-corner-br { bottom: 6px; right: 8px; }
 
 /* URL Form ---------------------------------------------------------------- */
 .url-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .url-form-header {
@@ -63,22 +95,36 @@
   justify-content: space-between;
 }
 
+.url-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.url-input-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--platform-color);
+  box-shadow: 0 0 8px var(--platform-glow);
+}
+
 .url-input-label {
-  font-size: var(--text-label);
-  font-weight: 700;
+  font-size: 0.72rem;
+  font-weight: 800;
   letter-spacing: var(--tracking-mono);
-  color: var(--platform-color);
+  color: var(--text-secondary);
 }
 
 .url-paste-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-elevated);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  padding: 5px 12px;
-  font-size: var(--text-label);
+  padding: 4px 10px;
+  font-size: 0.7rem;
   letter-spacing: var(--tracking-mono);
   font-weight: 700;
   cursor: pointer;
@@ -92,6 +138,15 @@
   box-shadow: 0 0 12px var(--platform-glow);
 }
 
+.url-paste-kbd {
+  font-size: 0.65rem;
+  color: var(--platform-color);
+  background: rgba(0, 242, 254, 0.08);
+  padding: 1px 4px;
+  border: 1px solid rgba(0, 242, 254, 0.2);
+}
+
+/* Input Wrapper & High Energy Glows */
 .url-input-wrapper {
   display: flex;
   align-items: stretch;
@@ -102,32 +157,32 @@
 
 .url-input-wrapper:focus-within {
   border-color: var(--platform-color);
-  box-shadow: 0 0 20px var(--platform-glow);
+  box-shadow: 0 0 24px var(--platform-glow);
 }
 
 .url-input-wrapper.detected-youtube {
   border-color: var(--brand-youtube);
-  box-shadow: 0 0 20px var(--brand-youtube-glow);
+  box-shadow: 0 0 24px var(--brand-youtube-glow);
 }
 
 .url-input-wrapper.detected-tiktok {
   border-color: var(--brand-tiktok);
-  box-shadow: 0 0 20px var(--brand-tiktok-glow);
+  box-shadow: 0 0 24px var(--brand-tiktok-glow);
 }
 
 .url-input-wrapper.detected-instagram {
   border-color: var(--brand-instagram);
-  box-shadow: 0 0 20px var(--brand-instagram-glow);
+  box-shadow: 0 0 24px var(--brand-instagram-glow);
 }
 
 .url-input-wrapper.detected-x {
   border-color: var(--brand-x);
-  box-shadow: 0 0 20px var(--brand-x-glow);
+  box-shadow: 0 0 24px var(--brand-x-glow);
 }
 
 .url-input-wrapper.has-error {
   border-color: var(--error);
-  box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 20px var(--error-glow);
 }
 
 .url-field {
@@ -136,8 +191,8 @@
   background: transparent;
   border: none;
   color: #ffffff;
-  padding: 16px 20px;
-  font-size: 1rem;
+  padding: 15px 18px;
+  font-size: 0.95rem;
   letter-spacing: 0.02em;
 }
 
@@ -146,8 +201,8 @@
 }
 
 .url-field::placeholder {
-  color: var(--text-muted);
-  opacity: 0.8;
+  color: var(--text-dim);
+  opacity: 0.85;
 }
 
 .url-submit-btn {
@@ -155,22 +210,22 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 0 32px;
+  padding: 0 28px;
   background-color: var(--platform-color);
-  color: #090a0f;
+  color: #07080d;
   border: none;
-  font-size: var(--text-small);
+  font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: var(--tracking-mono);
   cursor: pointer;
   transition: all var(--transition-fast);
-  box-shadow: 0 0 15px var(--platform-glow);
+  box-shadow: 0 0 20px var(--platform-glow);
   white-space: nowrap;
 }
 
 .url-submit-btn:hover:not(:disabled) {
   filter: brightness(1.15);
-  box-shadow: 0 0 25px var(--platform-glow);
+  box-shadow: 0 0 30px var(--platform-glow);
   transform: translateY(-1px);
 }
 
@@ -178,49 +233,49 @@
   opacity: 0.4;
   cursor: not-allowed;
   box-shadow: none;
-  background-color: #334155;
-  color: #94a3b8;
+  background-color: #23293d;
+  color: #64748b;
 }
 
-/* URL Footer & Platform Indicators ---------------------------------------- */
+/* Resolver Bar ------------------------------------------------------------ */
 .url-footer {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding-top: 8px;
-  font-size: var(--text-label);
+  gap: 10px;
+  padding-top: 4px;
+  font-size: 0.72rem;
   letter-spacing: var(--tracking-mono);
 }
 
 .url-platforms-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .url-platforms-prefix {
-  color: var(--text-muted);
+  color: var(--text-dim);
   font-weight: 700;
 }
 
 .url-platform-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .url-platform-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: 5px;
+  padding: 3px 8px;
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
   background-color: var(--surface-elevated);
   font-weight: 600;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   transition: var(--transition-fast);
 }
 
@@ -230,52 +285,103 @@
   justify-content: center;
 }
 
+.chip-check {
+  margin-left: 2px;
+}
+
 .url-platform-chip.chip-youtube.is-active {
-  background-color: rgba(255, 0, 0, 0.15);
-  border-color: #ff0000;
-  color: #ff4d4d;
-  box-shadow: 0 0 14px rgba(255, 0, 0, 0.35);
+  background-color: rgba(255, 0, 51, 0.18);
+  border-color: #ff0033;
+  color: #ff4d66;
+  box-shadow: 0 0 12px rgba(255, 0, 51, 0.4);
 }
 
 .url-platform-chip.chip-tiktok.is-active {
-  background-color: rgba(0, 242, 254, 0.15);
+  background-color: rgba(0, 242, 254, 0.18);
   border-color: #00f2fe;
   color: #00f2fe;
-  box-shadow: 0 0 14px rgba(0, 242, 254, 0.35);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.4);
 }
 
 .url-platform-chip.chip-instagram.is-active {
-  background-color: rgba(225, 48, 108, 0.15);
+  background-color: rgba(225, 48, 108, 0.18);
   border-color: #e1306c;
   color: #ff69b4;
-  box-shadow: 0 0 14px rgba(225, 48, 108, 0.35);
+  box-shadow: 0 0 12px rgba(225, 48, 108, 0.4);
 }
 
 .url-platform-chip.chip-x.is-active {
-  background-color: rgba(29, 155, 240, 0.15);
+  background-color: rgba(29, 155, 240, 0.18);
   border-color: #1d9bf0;
   color: #1d9bf0;
-  box-shadow: 0 0 14px rgba(29, 155, 240, 0.35);
+  box-shadow: 0 0 12px rgba(29, 155, 240, 0.4);
 }
 
 .url-state-indicator {
-  font-size: var(--text-label);
+  font-size: 0.72rem;
 }
 
 .url-detected-label {
   color: var(--platform-color);
   font-weight: 800;
-  text-shadow: 0 0 10px var(--platform-glow);
+  text-shadow: 0 0 12px var(--platform-glow);
 }
 
 .url-idle-label {
-  color: var(--text-muted);
+  color: var(--text-dim);
+}
+
+/* Engine Capability Spec Bar ---------------------------------------------- */
+.deck-spec-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.deck-spec-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-mono);
+  border: 1px solid var(--border-color);
+  background-color: rgba(9, 12, 20, 0.6);
+  transition: var(--transition-fast);
+}
+
+.deck-spec-chip.spec-video {
+  color: var(--neon-emerald);
+  border-color: rgba(0, 255, 136, 0.25);
+  background: rgba(0, 255, 136, 0.05);
+}
+
+.deck-spec-chip.spec-audio {
+  color: var(--neon-purple);
+  border-color: rgba(176, 38, 255, 0.25);
+  background: rgba(176, 38, 255, 0.05);
+}
+
+.deck-spec-chip.spec-photo {
+  color: var(--neon-amber);
+  border-color: rgba(255, 170, 0, 0.25);
+  background: rgba(255, 170, 0, 0.05);
+}
+
+.deck-spec-chip.spec-security {
+  color: var(--neon-cyan);
+  border-color: rgba(0, 242, 254, 0.25);
+  background: rgba(0, 242, 254, 0.05);
 }
 
 /* Loading Bar ------------------------------------------------------------- */
 .downloader-loading-bar {
   margin-top: var(--space-md);
-  padding: 14px 18px;
+  padding: 12px 16px;
   background-color: var(--surface-input);
   border: 1px solid var(--border-color);
 }
@@ -284,8 +390,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
-  font-size: var(--text-label);
+  margin-bottom: 8px;
+  font-size: 0.72rem;
   letter-spacing: var(--tracking-mono);
 }
 
@@ -295,13 +401,13 @@
 }
 
 .downloader-loading-timer {
-  color: var(--text-muted);
+  color: var(--text-dim);
 }
 
 .downloader-progress-track {
   position: relative;
   width: 100%;
-  height: 4px;
+  height: 3px;
   background-color: var(--surface-card);
   overflow: hidden;
 }
@@ -312,7 +418,7 @@
   left: 0;
   height: 100%;
   background-color: var(--platform-color);
-  box-shadow: 0 0 10px var(--platform-glow);
+  box-shadow: 0 0 12px var(--platform-glow);
   animation: scanline 1.2s infinite ease-in-out;
 }
 
@@ -325,10 +431,10 @@
 /* Error Banner ------------------------------------------------------------ */
 .downloader-error-banner {
   margin-top: var(--space-md);
-  padding: 14px 18px;
-  background-color: rgba(239, 68, 68, 0.1);
+  padding: 12px 16px;
+  background-color: rgba(255, 51, 68, 0.08);
   border: 1px solid var(--error);
-  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 16px rgba(255, 51, 68, 0.2);
 }
 
 .downloader-error-header {
@@ -336,13 +442,13 @@
   align-items: center;
   gap: 8px;
   color: var(--error);
-  font-size: var(--text-label);
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: var(--tracking-mono);
 }
 
 .downloader-error-message {
-  margin-top: 8px;
+  margin-top: 6px;
   font-size: var(--text-small);
   color: #ffffff;
   line-height: 1.4;
@@ -356,12 +462,14 @@
     flex-direction: column;
   }
   .url-submit-btn {
-    padding: 16px 20px;
+    padding: 14px 20px;
     width: 100%;
   }
   .url-footer {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+  }
+  .deck-spec-bar {
+    grid-template-columns: 1fr;
   }
 }

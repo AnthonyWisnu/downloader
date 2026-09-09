@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Activity } from "lucide-react";
 import UrlInput from "./UrlInput";
 
 function DownloaderPanel({
@@ -29,16 +29,24 @@ function DownloaderPanel({
   return (
     <section
       id="downloader"
-      className="downloader-section section bg-black"
+      className="downloader-section"
       aria-label="Panel Input Downloader"
     >
       <div className="downloader-inner section-inner">
         <div className="downloader-tag-bar mono">
-          <span className="section-tag">[02] SOURCE ANALYSIS</span>
-          <span className="downloader-sys-spec">PAYLOAD EXTRACTION ENGINE</span>
+          <div className="downloader-tag-left">
+            <Activity size={14} className="downloader-tag-icon" aria-hidden="true" />
+            <span className="section-tag">[02] INGESTION CONSOLE</span>
+          </div>
+          <span className="downloader-sys-spec">PAYLOAD BUFFER: HIGH PERFORMANCE</span>
         </div>
 
-        <div className="downloader-panel">
+        <div className="downloader-panel deck-panel">
+          <span className="deck-corner deck-corner-tl" aria-hidden="true">+</span>
+          <span className="deck-corner deck-corner-tr" aria-hidden="true">+</span>
+          <span className="deck-corner deck-corner-bl" aria-hidden="true">+</span>
+          <span className="deck-corner deck-corner-br" aria-hidden="true">+</span>
+
           <UrlInput
             value={url}
             error={error}
@@ -58,10 +66,10 @@ function DownloaderPanel({
             >
               <div className="downloader-loading-header">
                 <span className="downloader-loading-title">
-                  ANALYZING SOURCE STREAM...
+                  EXTRACTING MULTI-STREAM PAYLOAD...
                 </span>
                 <span className="downloader-loading-timer">
-                  ELAPSED: {elapsedSeconds}s
+                  LATENCY: {elapsedSeconds}s
                 </span>
               </div>
               <div className="downloader-progress-track" aria-hidden="true">

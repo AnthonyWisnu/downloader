@@ -1,47 +1,82 @@
+import { Workflow, Copy, Search, DownloadCloud, ArrowRight } from "lucide-react";
+
 const steps = [
   {
     number: "01",
-    title: "COPY MEDIA URL",
-    text: "Copy the public URL of any video, reel, post, or tweet from YouTube, TikTok, Instagram, or X."
+    label: "INGEST",
+    title: "ACQUIRE SOURCE LINK",
+    icon: Copy,
+    colorClass: "step-cyan",
+    text: "Copy any public video, reel, shorts, post, or tweet URL from YouTube, TikTok, Instagram, or X to your clipboard."
   },
   {
     number: "02",
-    title: "ANALYZE SOURCE",
-    text: "Paste the URL into the input field above and click ANALYZE. The engine detects the platform automatically."
+    label: "RESOLVE",
+    title: "EXECUTE STREAM ANALYSIS",
+    icon: Search,
+    colorClass: "step-purple",
+    text: "Paste the URL into the command deck. The resolver validates the host and extracts live audio-video payload streams."
   },
   {
     number: "03",
-    title: "STREAM & DOWNLOAD",
-    text: "Inspect the direct preview stream, select your preferred resolution or audio format, and download."
+    label: "DELIVER",
+    title: "PREVIEW & INSTANT PULL",
+    icon: DownloadCloud,
+    colorClass: "step-green",
+    text: "Inspect the integrated in-line stream preview, select your desired resolution or lossless MP3, and download directly."
   }
 ];
 
-function HowToStep({ step }) {
+function HowToStep({ step, isLast }) {
+  const Icon = step.icon;
+
   return (
-    <article className="howto-step card">
-      <span className="howto-number mono" aria-hidden="true">
-        {step.number}
-      </span>
+    <article className={`howto-step ${step.colorClass}`}>
+      <span className="deck-corner deck-corner-tl" aria-hidden="true">+</span>
+      <span className="deck-corner deck-corner-tr" aria-hidden="true">+</span>
+
+      <div className="howto-step-header mono">
+        <span className="howto-number">[{step.number}]</span>
+        <span className="howto-step-badge">{step.label}</span>
+      </div>
+
+      <div className="howto-step-icon-wrap" aria-hidden="true">
+        <Icon size={20} strokeWidth={2.2} />
+      </div>
+
       <div className="howto-step-body">
         <h3 className="howto-step-title mono">{step.title}</h3>
         <p className="howto-step-text">{step.text}</p>
       </div>
+
+      {!isLast ? (
+        <div className="howto-connector-arrow" aria-hidden="true">
+          <ArrowRight size={16} />
+        </div>
+      ) : null}
     </article>
   );
 }
 
 function HowToSection() {
   return (
-    <section id="how-to" className="section bg-black" aria-label="Workflow VOID">
+    <section id="how-to" className="section howto-section" aria-label="Workflow VOID">
       <div className="section-inner howto-inner">
         <div className="howto-header-bar mono">
-          <span className="section-tag">[05] EXECUTION PROTOCOL</span>
-          <span className="howto-header-status">3-STEP WORKFLOW</span>
+          <div className="howto-header-left">
+            <Workflow size={14} className="howto-header-icon" aria-hidden="true" />
+            <span className="section-tag">[05] EXECUTION PROTOCOL</span>
+          </div>
+          <span className="howto-header-status">3-PHASE EXTRACTION SEQUENCE</span>
         </div>
 
         <div className="howto-grid">
-          {steps.map((step) => (
-            <HowToStep key={step.number} step={step} />
+          {steps.map((step, idx) => (
+            <HowToStep
+              key={step.number}
+              step={step}
+              isLast={idx === steps.length - 1}
+            />
           ))}
         </div>
       </div>

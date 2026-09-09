@@ -1,78 +1,81 @@
 /* ==========================================================================
-   VOID Design System - Variables (VOID Brutalist 2.0)
-   Monochrome palette, sharp edges (0px), no shadows, high contrast.
+   VOID Design System - Variables (Cyber-Studio / Media Deck 2.0)
+   Vibrant, high-density, sharp tactical edges (0px), high contrast.
    ========================================================================== */
 
 :root {
-  /* Core Dark Canvas & Surfaces */
-  --bg: #090a0f;
-  --surface-card: #11131c;
-  --surface-input: #0b0d14;
-  --surface-elevated: #181b27;
-  --surface-hover: #222636;
+  /* Core Deep Space Canvas & Tactile Deck Surfaces */
+  --bg: #07080d;
+  --bg-subtle: #0c0e17;
+  --surface-card: #10131f;
+  --surface-input: #090c14;
+  --surface-elevated: #161b2c;
+  --surface-hover: #1f263d;
+  --surface-glass: rgba(16, 19, 31, 0.85);
 
   --text-primary: #ffffff;
-  --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
 
-  /* Official Platform Brand Colors */
-  --brand-youtube: #ff0000;
-  --brand-youtube-glow: rgba(255, 0, 0, 0.28);
+  /* Official Platform Brand Colors (Super Saturated & Electric) */
+  --brand-youtube: #ff0033;
+  --brand-youtube-glow: rgba(255, 0, 51, 0.35);
+  --brand-youtube-bg: rgba(255, 0, 51, 0.08);
+
   --brand-tiktok: #00f2fe;
-  --brand-tiktok-accent: #fe2c55;
-  --brand-tiktok-glow: rgba(0, 242, 254, 0.25);
+  --brand-tiktok-coral: #fe2c55;
+  --brand-tiktok-glow: rgba(0, 242, 254, 0.32);
+  --brand-tiktok-bg: rgba(0, 242, 254, 0.08);
+
   --brand-instagram: #e1306c;
-  --brand-instagram-glow: rgba(225, 48, 108, 0.28);
+  --brand-instagram-glow: rgba(225, 48, 108, 0.35);
+  --brand-instagram-bg: rgba(225, 48, 108, 0.08);
   --brand-instagram-gradient: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+
   --brand-x: #1d9bf0;
-  --brand-x-glow: rgba(29, 155, 240, 0.25);
+  --brand-x-glow: rgba(29, 155, 240, 0.35);
+  --brand-x-bg: rgba(29, 155, 240, 0.08);
+
+  /* Cyber Technical Neon Accents */
+  --neon-emerald: #00ff88;
+  --neon-emerald-glow: rgba(0, 255, 136, 0.3);
+  --neon-purple: #b026ff;
+  --neon-purple-glow: rgba(176, 38, 255, 0.3);
+  --neon-amber: #ffaa00;
+  --neon-amber-glow: rgba(255, 170, 0, 0.3);
+  --neon-cyan: #00f2fe;
+  --neon-cyan-glow: rgba(0, 242, 254, 0.3);
 
   /* Media Category Accent Colors */
-  --media-video: #10b981;
-  --media-video-glow: rgba(16, 185, 129, 0.25);
-  --media-audio: #a855f7;
-  --media-audio-glow: rgba(168, 85, 247, 0.25);
-  --media-image: #f59e0b;
-  --media-image-glow: rgba(245, 158, 11, 0.25);
+  --media-video: #00ff88;
+  --media-video-glow: rgba(0, 255, 136, 0.3);
+  --media-audio: #b026ff;
+  --media-audio-glow: rgba(176, 38, 255, 0.3);
+  --media-image: #ffaa00;
+  --media-image-glow: rgba(255, 170, 0, 0.3);
 
-  /* Default Reactive Accent (Idle: Electric Cyan) */
+  /* Default Reactive Accent (Idle: Electric Cyber Cyan) */
   --platform-color: #00f2fe;
-  --platform-glow: rgba(0, 242, 254, 0.25);
+  --platform-glow: rgba(0, 242, 254, 0.3);
   --platform-border: #00f2fe;
+  --platform-bg: rgba(0, 242, 254, 0.08);
 
-  /* Accent & Status */
-  --error: #ef4444;
-  --status-ok: #10b981;
-  --status-error: #ef4444;
+  /* Status */
+  --error: #ff3344;
+  --error-glow: rgba(255, 51, 68, 0.3);
+  --status-ok: #00ff88;
+  --status-ok-glow: rgba(0, 255, 136, 0.35);
 
-  /* Backward Compatibility Aliases */
-  --ink: #090a0f;
-  --white: #ffffff;
-  --off-white: #f1f5f9;
-  --yellow: #f59e0b;
-  --pink: #ec4899;
-  --purple: #8b5cf6;
-  --cyan: #06b6d4;
-  --lime: #10b981;
-  --orange: #f97316;
-  --red: #ef4444;
-
-  /* Borders */
-  --border-color: #272a38;
-  --border-color-light: #3b4055;
+  /* Borders & Grids */
+  --border-color: #23293d;
+  --border-color-light: #37415e;
   --border-color-focus: var(--platform-color);
   --border: 1px solid var(--border-color);
   --border-thick: 2px solid var(--border-color);
-  --border-focus: 3px solid var(--border-color-focus);
-  --border-width: 1px;
-  --border-width-thick: 2px;
+  --border-focus: 2px solid var(--border-color-focus);
 
-  /* Shadows (Strictly none per REFACTOR_UI.md) */
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
-
-  /* Geometry (Strictly 0px sharp edges) */
+  /* Tactile Geometry */
   --radius: 0px;
   --radius-sm: 0px;
   --radius-md: 0px;
@@ -87,52 +90,47 @@
   --tracking-mono: 0.08em;
   --tracking-wide: 0.12em;
 
-  /* Type Scale */
-  --text-hero: clamp(3.5rem, 12vw, 7rem);
-  --text-h1: clamp(2rem, 6vw, 3.5rem);
-  --text-h2: clamp(1.5rem, 4vw, 2.25rem);
-  --text-h3: clamp(1.1rem, 2.5vw, 1.4rem);
-  --text-body: 0.95rem;
-  --text-small: 0.825rem;
-  --text-label: 0.75rem;
-
-  /* Spacing */
-  --space-xs: 8px;
-  --space-sm: 16px;
-  --space-md: 24px;
-  --space-lg: 48px;
-  --space-xl: 80px;
+  /* Spacing (Tighter & denser) */
+  --space-xs: 6px;
+  --space-sm: 12px;
+  --space-md: 20px;
+  --space-lg: 36px;
+  --space-xl: 60px;
 
   /* Layout */
-  --max-width: 1160px;
-  --panel-width: 720px;
+  --max-width: 1200px;
+  --panel-width: 800px;
 
-  /* Motion / Transitions */
-  --transition: all 0.15s ease;
+  /* Motion */
+  --transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   --transition-fast: 100ms ease;
 }
 
-/* Reactive Platform Colors (Option B: Adaptive Theme) */
+/* Reactive Platform Colors */
 [data-platform="youtube"] {
   --platform-color: var(--brand-youtube);
   --platform-glow: var(--brand-youtube-glow);
   --platform-border: var(--brand-youtube);
+  --platform-bg: var(--brand-youtube-bg);
 }
 
 [data-platform="tiktok"] {
   --platform-color: var(--brand-tiktok);
   --platform-glow: var(--brand-tiktok-glow);
   --platform-border: var(--brand-tiktok);
+  --platform-bg: var(--brand-tiktok-bg);
 }
 
 [data-platform="instagram"] {
   --platform-color: var(--brand-instagram);
   --platform-glow: var(--brand-instagram-glow);
   --platform-border: var(--brand-instagram);
+  --platform-bg: var(--brand-instagram-bg);
 }
 
 [data-platform="x"] {
   --platform-color: var(--brand-x);
   --platform-glow: var(--brand-x-glow);
   --platform-border: var(--brand-x);
+  --platform-bg: var(--brand-x-bg);
 }

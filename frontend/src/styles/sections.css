@@ -1,10 +1,22 @@
 /* ==========================================================================
-   VOID Design System - Informational Sections (Vibrant Reactive Identity)
+   VOID Design System - Informational Sections (Cyber-Studio Deck 2.0)
+   High-density Bento Grid, Channel Racks, Tactical Execution Sequence, FAQ.
    ========================================================================== */
 
-/* Shared Section Inners --------------------------------------------------- */
+/* Shared Section Container ------------------------------------------------ */
+.section {
+  padding: var(--space-lg) var(--space-md);
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+}
+
+.section-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
 .platform-inner,
-.feature-grid-inner,
+.bento-inner,
 .howto-inner,
 .faq-inner {
   display: flex;
@@ -13,27 +25,42 @@
 }
 
 .platform-header-bar,
-.feature-header-bar,
+.bento-header-bar,
 .howto-header-bar,
 .faq-header-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--text-label);
+  font-size: 0.72rem;
   letter-spacing: var(--tracking-mono);
-  color: var(--text-muted);
+  color: var(--text-dim);
+}
+
+.platform-header-left,
+.bento-header-left,
+.howto-header-left,
+.faq-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--platform-color);
 }
 
 .platform-header-status,
-.feature-header-status,
+.bento-header-status,
 .howto-header-status,
 .faq-header-status {
   color: var(--platform-color);
   font-weight: 700;
 }
 
-/* Platform Support Matrix ------------------------------------------------- */
+/* ==========================================================================
+   Platform Channel Matrix (Channel Racks)
+   ========================================================================== */
 .platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-md);
   width: 100%;
 }
 
@@ -41,10 +68,12 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: var(--space-lg);
-  border: 1px solid var(--border-color);
-  background-color: var(--surface-card);
-  transition: all var(--transition-fast);
+  padding: var(--space-md);
+  border: 1px solid var(--border-color-light);
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all var(--transition);
   position: relative;
   overflow: hidden;
 }
@@ -56,54 +85,67 @@
   left: 0;
   right: 0;
   height: 3px;
+  transition: height 0.2s ease;
 }
 
-.card-youtube::before {
-  background: var(--brand-youtube);
+.platform-card:hover {
+  transform: translateY(-3px);
 }
+
+.platform-card:hover::before {
+  height: 5px;
+}
+
+/* YouTube Channel */
+.card-youtube::before { background: var(--brand-youtube); }
 .card-youtube:hover {
-  border-color: rgba(255, 0, 0, 0.5);
-  box-shadow: 0 10px 30px rgba(255, 0, 0, 0.18);
-  transform: translateY(-2px);
+  border-color: var(--brand-youtube);
+  box-shadow: 0 12px 32px var(--brand-youtube-glow);
 }
-.card-youtube .platform-card-scope {
-  color: #ff4d4d;
+.card-youtube .platform-card-scope { color: #ff4d66; }
+.card-youtube .platform-format-pill {
+  border-color: rgba(255, 0, 51, 0.3);
+  color: #ff6677;
+  background: rgba(255, 0, 51, 0.06);
 }
 
-.card-tiktok::before {
-  background: var(--brand-tiktok);
-}
+/* TikTok Channel */
+.card-tiktok::before { background: var(--brand-tiktok); }
 .card-tiktok:hover {
-  border-color: rgba(0, 242, 254, 0.5);
-  box-shadow: 0 10px 30px rgba(0, 242, 254, 0.18);
-  transform: translateY(-2px);
+  border-color: var(--brand-tiktok);
+  box-shadow: 0 12px 32px var(--brand-tiktok-glow);
 }
-.card-tiktok .platform-card-scope {
+.card-tiktok .platform-card-scope { color: #00f2fe; }
+.card-tiktok .platform-format-pill {
+  border-color: rgba(0, 242, 254, 0.3);
   color: #00f2fe;
+  background: rgba(0, 242, 254, 0.06);
 }
 
-.card-instagram::before {
-  background: var(--brand-instagram);
-}
+/* Instagram Channel */
+.card-instagram::before { background: var(--brand-instagram); }
 .card-instagram:hover {
-  border-color: rgba(225, 48, 108, 0.5);
-  box-shadow: 0 10px 30px rgba(225, 48, 108, 0.18);
-  transform: translateY(-2px);
+  border-color: var(--brand-instagram);
+  box-shadow: 0 12px 32px var(--brand-instagram-glow);
 }
-.card-instagram .platform-card-scope {
+.card-instagram .platform-card-scope { color: #ff69b4; }
+.card-instagram .platform-format-pill {
+  border-color: rgba(225, 48, 108, 0.3);
   color: #ff69b4;
+  background: rgba(225, 48, 108, 0.06);
 }
 
-.card-x::before {
-  background: var(--brand-x);
-}
+/* X (Twitter) Channel */
+.card-x::before { background: var(--brand-x); }
 .card-x:hover {
-  border-color: rgba(29, 155, 240, 0.5);
-  box-shadow: 0 10px 30px rgba(29, 155, 240, 0.18);
-  transform: translateY(-2px);
+  border-color: var(--brand-x);
+  box-shadow: 0 12px 32px var(--brand-x-glow);
 }
-.card-x .platform-card-scope {
+.card-x .platform-card-scope { color: #1d9bf0; }
+.card-x .platform-format-pill {
+  border-color: rgba(29, 155, 240, 0.3);
   color: #1d9bf0;
+  background: rgba(29, 155, 240, 0.06);
 }
 
 .platform-card-header {
@@ -116,16 +158,28 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
+  padding: 8px;
   background-color: var(--surface-input);
   border: 1px solid var(--border-color);
 }
 
-.platform-card-tag {
-  font-size: var(--text-label);
-  color: var(--text-muted);
-  letter-spacing: var(--tracking-mono);
+.platform-card-tag-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: var(--text-dim);
   font-weight: 700;
+}
+
+.platform-card-arrow {
+  color: var(--text-dim);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.platform-card:hover .platform-card-arrow {
+  transform: translate(2px, -2px);
+  color: #ffffff;
 }
 
 .platform-card-body {
@@ -135,131 +189,416 @@
 }
 
 .platform-card-meta {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   letter-spacing: var(--tracking-mono);
   font-weight: 800;
-  text-transform: uppercase;
 }
 
 .platform-card-title {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 800;
   color: #ffffff;
+  letter-spacing: 0.02em;
 }
 
 .platform-card-text {
-  font-size: var(--text-small);
-  color: var(--text-secondary);
+  font-size: 0.85rem;
+  color: var(--text-muted);
   line-height: 1.45;
 }
 
-/* Feature Grid ------------------------------------------------------------ */
-.feature-grid-list {
+.platform-format-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+.platform-format-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border: 1px solid;
+  letter-spacing: 0.04em;
+}
+
+/* ==========================================================================
+   Bento Grid Engine Architecture
+   ========================================================================== */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
   width: 100%;
 }
 
-.feature-card {
+.bento-card {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: var(--space-md);
-  background-color: var(--surface-card);
-  border: 1px solid var(--border-color);
-  transition: all var(--transition-fast);
+  border: 1px solid var(--border-color-light);
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
 }
 
-.feature-card:hover {
-  border-color: var(--platform-color);
-  box-shadow: 0 6px 20px var(--platform-glow);
+.bento-card:hover {
   transform: translateY(-2px);
 }
 
-.feature-card-icon {
+.bento-wide {
+  grid-column: span 2;
+}
+
+.bento-tall {
+  grid-column: span 1;
+}
+
+.bento-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bento-icon-wrap {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background-color: var(--surface-input);
+  width: 36px;
+  height: 36px;
   border: 1px solid var(--border-color);
-  color: var(--platform-color);
+  background-color: var(--surface-input);
 }
 
-.feature-card-title {
+.bento-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: var(--tracking-mono);
+  padding: 2px 6px;
+  border: 1px solid;
+}
+
+.bento-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bento-title {
   font-size: 1.05rem;
   font-weight: 800;
   color: #ffffff;
   letter-spacing: 0.02em;
 }
 
-.feature-card-text {
-  font-size: var(--text-small);
-  color: var(--text-secondary);
+.bento-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
   line-height: 1.45;
 }
 
-/* How To / Workflow ------------------------------------------------------- */
-.howto-grid {
-  display: grid;
-  gap: var(--space-md);
-  width: 100%;
+.bento-desc code {
+  color: var(--platform-color);
+  background: rgba(0, 242, 254, 0.08);
+  padding: 1px 4px;
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  border: 1px solid rgba(0, 242, 254, 0.2);
 }
 
-@media (min-width: 768px) {
-  .howto-grid {
-    grid-template-columns: repeat(3, 1fr);
+/* Bento Card Theming */
+/* 1. Video FastStart */
+.bento-video:hover {
+  border-color: var(--neon-emerald);
+  box-shadow: 0 10px 30px var(--neon-emerald-glow);
+}
+.icon-video { color: var(--neon-emerald); border-color: rgba(0, 255, 136, 0.3); }
+.badge-video { color: var(--neon-emerald); border-color: var(--neon-emerald); background: rgba(0, 255, 136, 0.08); }
+
+.bento-pipeline-graphic {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-color);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.pipeline-node {
+  padding: 3px 8px;
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.pipeline-node.highlight {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  background: rgba(0, 242, 254, 0.08);
+}
+
+.pipeline-node.success {
+  border-color: var(--neon-emerald);
+  color: var(--neon-emerald);
+  background: rgba(0, 255, 136, 0.12);
+  box-shadow: 0 0 10px var(--neon-emerald-glow);
+}
+
+.pipeline-arrow {
+  color: var(--text-dim);
+}
+
+/* 2. Audio Synthesizer */
+.bento-audio:hover {
+  border-color: var(--neon-purple);
+  box-shadow: 0 10px 30px var(--neon-purple-glow);
+}
+.icon-audio { color: var(--neon-purple); border-color: rgba(176, 38, 255, 0.3); }
+.badge-audio { color: var(--neon-purple); border-color: var(--neon-purple); background: rgba(176, 38, 255, 0.08); }
+
+.bento-waveform-graphic {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 38px;
+  margin-top: 8px;
+  padding: 6px 12px;
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-color);
+}
+
+.waveform-bar {
+  flex: 1;
+  background-color: var(--neon-purple);
+  box-shadow: 0 0 8px var(--neon-purple-glow);
+  animation: wave 1.2s infinite ease-in-out alternate;
+}
+
+.bar-1 { height: 35%; animation-delay: 0.1s; }
+.bar-2 { height: 80%; animation-delay: 0.3s; }
+.bar-3 { height: 50%; animation-delay: 0.5s; }
+.bar-4 { height: 100%; animation-delay: 0.2s; }
+.bar-5 { height: 65%; animation-delay: 0.4s; }
+.bar-6 { height: 85%; animation-delay: 0.6s; }
+.bar-7 { height: 40%; animation-delay: 0.2s; }
+.bar-8 { height: 60%; animation-delay: 0.5s; }
+
+@keyframes wave {
+  0% { transform: scaleY(0.4); opacity: 0.6; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+
+/* 3. Photos */
+.bento-photo:hover {
+  border-color: var(--neon-amber);
+  box-shadow: 0 10px 30px var(--neon-amber-glow);
+}
+.icon-photo { color: var(--neon-amber); border-color: rgba(255, 170, 0, 0.3); }
+.badge-photo { color: var(--neon-amber); border-color: var(--neon-amber); background: rgba(255, 170, 0, 0.08); }
+
+.bento-photo-graphic {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.photo-card-chip {
+  flex: 1;
+  padding: 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-align: center;
+  border: 1px dashed rgba(255, 170, 0, 0.4);
+  background-color: rgba(255, 170, 0, 0.06);
+  color: var(--neon-amber);
+}
+
+/* 4. Security Shield */
+.bento-security:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 10px 30px var(--neon-cyan-glow);
+}
+.icon-security { color: var(--neon-cyan); border-color: rgba(0, 242, 254, 0.3); }
+.badge-security { color: var(--neon-cyan); border-color: var(--neon-cyan); background: rgba(0, 242, 254, 0.08); }
+
+.bento-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-color);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-label {
+  color: var(--text-dim);
+}
+
+.status-val {
+  color: #ffffff;
+}
+
+.status-val.text-green {
+  color: var(--neon-emerald);
+  text-shadow: 0 0 8px var(--neon-emerald-glow);
+}
+
+@media (max-width: 900px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
   }
+  .bento-wide,
+  .bento-tall {
+    grid-column: span 1;
+  }
+}
+
+/* ==========================================================================
+   How-To Workflow (Execution Sequence)
+   ========================================================================== */
+.howto-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+  width: 100%;
+  position: relative;
 }
 
 .howto-step {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: var(--space-lg);
-  background-color: var(--surface-card);
-  border: 1px solid var(--border-color);
-  transition: all var(--transition-fast);
+  gap: 10px;
+  padding: var(--space-md);
+  border: 1px solid var(--border-color-light);
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all var(--transition);
   position: relative;
 }
 
 .howto-step:hover {
-  border-color: var(--platform-color);
-  box-shadow: 0 6px 20px var(--platform-glow);
   transform: translateY(-2px);
 }
 
+.howto-step.step-cyan:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 8px 24px var(--neon-cyan-glow);
+}
+.howto-step.step-purple:hover {
+  border-color: var(--neon-purple);
+  box-shadow: 0 8px 24px var(--neon-purple-glow);
+}
+.howto-step.step-green:hover {
+  border-color: var(--neon-emerald);
+  box-shadow: 0 8px 24px var(--neon-emerald-glow);
+}
+
+.howto-step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .howto-number {
-  font-size: 2.2rem;
+  font-size: 1.2rem;
   font-weight: 800;
-  line-height: 1;
   color: var(--platform-color);
-  letter-spacing: -0.04em;
-  text-shadow: 0 0 15px var(--platform-glow);
+  letter-spacing: -0.02em;
+}
+
+.howto-step-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border: 1px solid var(--border-color);
+  color: var(--text-dim);
+}
+
+.howto-step-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-color);
+  color: var(--platform-color);
 }
 
 .howto-step-body {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .howto-step-title {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: #ffffff;
+  letter-spacing: 0.02em;
 }
 
 .howto-step-text {
-  font-size: var(--text-small);
-  color: var(--text-secondary);
+  font-size: 0.85rem;
+  color: var(--text-muted);
   line-height: 1.45;
 }
 
-/* FAQ Accordion ----------------------------------------------------------- */
+.howto-connector-arrow {
+  position: absolute;
+  top: 50%;
+  right: -14px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .howto-grid {
+    grid-template-columns: 1fr;
+  }
+  .howto-connector-arrow {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   FAQ Section (Technical Reference Accordion)
+   ========================================================================== */
 .faq-list {
   width: 100%;
-  border: 1px solid var(--border-color);
-  background-color: var(--surface-card);
+  border: 1px solid var(--border-color-light);
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .faq-item {
@@ -276,32 +615,64 @@
   justify-content: space-between;
   gap: var(--space-sm);
   width: 100%;
-  padding: 18px 22px;
+  padding: 16px 20px;
   background: transparent;
   border: none;
   text-align: left;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: #ffffff;
   cursor: pointer;
   transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
+.faq-question-text-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.faq-index {
+  font-size: 0.78rem;
+  color: var(--platform-color);
+  font-weight: 800;
+}
+
+.faq-title {
+  color: #ffffff;
+}
+
+.faq-toggle-icon {
+  color: var(--text-dim);
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+
 .faq-question:hover {
   background-color: var(--surface-hover);
+}
+
+.faq-question:hover .faq-title {
+  color: var(--platform-color);
+}
+
+.faq-question:hover .faq-toggle-icon {
   color: var(--platform-color);
 }
 
 .faq-item.is-open .faq-question {
   background-color: var(--surface-elevated);
   border-bottom: 1px solid var(--border-color);
+}
+
+.faq-item.is-open .faq-title {
   color: var(--platform-color);
 }
 
 .faq-answer {
-  padding: 18px 22px;
-  font-size: var(--text-small);
+  padding: 16px 20px;
+  font-size: 0.88rem;
   color: var(--text-secondary);
   line-height: 1.55;
-  background-color: var(--surface-card);
+  background-color: rgba(9, 12, 20, 0.4);
 }

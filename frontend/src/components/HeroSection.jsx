@@ -1,68 +1,85 @@
 import { YouTubeLogo, TikTokLogo, InstagramLogo, XLogo } from "./BrandLogos";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Terminal, Cpu } from "lucide-react";
 
 function HeroSection() {
-  const platforms = [
+  const platformChannels = [
     {
-      code: "YT",
+      id: "yt",
       name: "YouTube",
-      colorClass: "badge-yt",
-      logo: <YouTubeLogo size={20} />
+      formatBadge: "1080p · SHORTS · MP3",
+      colorClass: "channel-yt",
+      logo: <YouTubeLogo size={22} />
     },
     {
-      code: "TT",
+      id: "tt",
       name: "TikTok",
-      colorClass: "badge-tt",
-      logo: <TikTokLogo size={20} />
+      formatBadge: "NO-WM · SLIDES · AUDIO",
+      colorClass: "channel-tt",
+      logo: <TikTokLogo size={22} />
     },
     {
-      code: "IG",
+      id: "ig",
       name: "Instagram",
-      colorClass: "badge-ig",
-      logo: <InstagramLogo size={20} />
+      formatBadge: "REELS · CAROUSEL · STORY",
+      colorClass: "channel-ig",
+      logo: <InstagramLogo size={22} />
     },
     {
-      code: "X",
+      id: "x",
       name: "X (Twitter)",
-      colorClass: "badge-x",
-      logo: <XLogo size={20} />
+      formatBadge: "ORIG PHOTO · GIF · VIDEO",
+      colorClass: "channel-x",
+      logo: <XLogo size={22} />
     }
   ];
 
   return (
-    <section className="hero grid-bg" aria-label="VOID Downloader">
+    <section className="hero" aria-label="VOID Downloader Studio Deck">
       <div className="hero-inner section-inner">
         <div className="hero-meta-bar mono">
           <div className="hero-meta-title-wrapper">
             <span className="hero-status-pulse" />
-            <span className="hero-meta-title">UNIVERSAL MEDIA EXTRACTION PLATFORM</span>
+            <span className="hero-meta-title">VOID // MEDIA DECK ENGINE v2.4</span>
           </div>
-          <span className="hero-meta-index">[SYS.01]</span>
+          <div className="hero-meta-right">
+            <span className="hero-meta-chip">
+              <Cpu size={12} aria-hidden="true" />
+              <span>FFMPEG H.264 FASTSTART</span>
+            </span>
+            <span className="hero-meta-index">[SYS.01]</span>
+          </div>
         </div>
 
         <div className="hero-brand-block">
           <div className="hero-badge-live mono">
             <Sparkles size={13} className="hero-sparkle-icon" aria-hidden="true" />
-            <span>FULL QUALITY · NO WATERMARK · ZERO LOGIN</span>
+            <span>DIRECT CDN PIPELINE : ZERO LOGS : LOSSLESS QUALITY</span>
           </div>
           <h1 className="hero-headline">
-            DOWNLOAD
+            UNIVERSAL MEDIA
             <br />
-            <span className="hero-headline-accent">WITHOUT</span>
-            <br />
-            THE NOISE.
+            <span className="hero-headline-accent">EXTRACTION DECK.</span>
           </h1>
+          <p className="hero-subheadline mono">
+            High-speed, uncompressed video, audio synthesis, and raw photo scraping from YouTube, TikTok, Instagram, and X without trackers or ads.
+          </p>
         </div>
 
         <div className="hero-divider" aria-hidden="true" />
 
-        <div className="hero-platforms-bar mono" aria-label="Platform yang didukung">
-          <span className="hero-platforms-label">SUPPORTED CHANNELS:</span>
-          <ul className="hero-platforms-list">
-            {platforms.map((p) => (
-              <li key={p.code} className={`hero-platform-badge ${p.colorClass}`}>
-                <span className="hero-platform-logo">{p.logo}</span>
-                <span className="hero-platform-name">{p.name}</span>
+        <div className="hero-platforms-bar mono" aria-label="Kanal platform yang didukung">
+          <div className="hero-channels-header">
+            <Terminal size={14} className="hero-terminal-icon" aria-hidden="true" />
+            <span className="hero-platforms-label">SUPPORTED PROTOCOLS:</span>
+          </div>
+          <ul className="hero-channels-list">
+            {platformChannels.map((channel) => (
+              <li key={channel.id} className={`hero-channel-card ${channel.colorClass}`}>
+                <div className="hero-channel-logo">{channel.logo}</div>
+                <div className="hero-channel-info">
+                  <span className="hero-channel-name">{channel.name}</span>
+                  <span className="hero-channel-badge">{channel.formatBadge}</span>
+                </div>
               </li>
             ))}
           </ul>

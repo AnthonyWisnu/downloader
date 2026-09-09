@@ -1,5 +1,5 @@
 /* ==========================================================================
-   VOID Design System - Navbar & Hero Section (Vibrant Reactive Identity)
+   VOID Design System - Navbar & Hero Section (Cyber-Studio Deck 2.0)
    ========================================================================== */
 
 .app {
@@ -10,51 +10,58 @@
   background-color: var(--bg);
   color: var(--text-primary);
   transition: background-color var(--transition);
+  position: relative;
 }
 
 /* Navbar ------------------------------------------------------------------ */
 .navbar {
   width: 100%;
-  background-color: rgba(9, 10, 15, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(7, 8, 13, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
-  z-index: 40;
+  z-index: 50;
 }
 
 .navbar-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 60px;
+  height: 56px;
   padding: 0 var(--space-md);
+  max-width: var(--max-width);
+  margin: 0 auto;
 }
 
 .navbar-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .navbar-logo {
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: #ffffff;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .navbar-tag {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--platform-color);
   letter-spacing: var(--tracking-mono);
-  font-weight: 700;
-  padding: 2px 6px;
+  font-weight: 800;
+  padding: 2px 7px;
   border: 1px solid var(--platform-color);
-  background: rgba(0, 242, 254, 0.08);
+  background: var(--platform-bg);
+  box-shadow: 0 0 10px var(--platform-glow);
 }
 
 .navbar-links {
@@ -65,8 +72,9 @@
 
 .navbar-link {
   font-size: var(--text-small);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   letter-spacing: var(--tracking-mono);
+  font-weight: 600;
   transition: color var(--transition-fast);
 }
 
@@ -78,10 +86,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: var(--text-label);
+  font-size: 0.72rem;
   letter-spacing: var(--tracking-mono);
   color: var(--text-secondary);
-  padding: 5px 12px;
+  padding: 4px 10px;
   border: 1px solid var(--border-color);
   background-color: var(--surface-card);
 }
@@ -90,8 +98,14 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background-color: #10b981;
-  box-shadow: 0 0 8px #10b981;
+  background-color: var(--neon-emerald);
+  box-shadow: 0 0 8px var(--neon-emerald);
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; transform: scale(1.15); }
 }
 
 .navbar-menu-btn {
@@ -117,16 +131,6 @@
   letter-spacing: var(--tracking-mono);
 }
 
-.navbar-mobile-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--text-label);
-  color: var(--text-secondary);
-  padding-top: 8px;
-  border-top: 1px solid var(--border-color);
-}
-
 @media (max-width: 768px) {
   .navbar-links {
     display: none;
@@ -141,8 +145,7 @@
 /* Hero Section ------------------------------------------------------------ */
 .hero {
   position: relative;
-  background-color: var(--bg);
-  padding: calc(var(--space-xl) * 1.1) var(--space-md) var(--space-xl);
+  padding: var(--space-lg) var(--space-md) var(--space-md);
   border-bottom: 1px solid var(--border-color);
   overflow: hidden;
 }
@@ -150,16 +153,18 @@
 .hero-inner {
   display: flex;
   flex-direction: column;
+  max-width: var(--max-width);
+  margin: 0 auto;
 }
 
 .hero-meta-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 14px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--border-color);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-wide);
+  font-size: 0.72rem;
+  letter-spacing: var(--tracking-mono);
   color: var(--text-muted);
 }
 
@@ -174,7 +179,7 @@
   height: 8px;
   border-radius: 50%;
   background-color: var(--platform-color);
-  box-shadow: 0 0 10px var(--platform-glow);
+  box-shadow: 0 0 12px var(--platform-glow);
   animation: hero-glow 2s infinite ease-in-out;
 }
 
@@ -188,15 +193,33 @@
   color: var(--text-secondary);
 }
 
+.hero-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hero-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-card);
+  color: var(--neon-emerald);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
 .hero-meta-index {
-  color: var(--text-muted);
+  color: var(--text-dim);
 }
 
 .hero-brand-block {
   display: flex;
   flex-direction: column;
-  padding-top: var(--space-lg);
-  gap: 12px;
+  padding-top: var(--space-md);
+  gap: 10px;
 }
 
 .hero-badge-live {
@@ -204,131 +227,173 @@
   align-items: center;
   gap: 8px;
   align-self: flex-start;
-  padding: 4px 12px;
-  background: rgba(0, 242, 254, 0.08);
+  padding: 4px 10px;
+  background: var(--platform-bg);
   border: 1px solid var(--platform-color);
   color: var(--platform-color);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: var(--tracking-mono);
-}
-
-.hero-sparkle-icon {
-  color: var(--platform-color);
+  box-shadow: 0 0 14px var(--platform-glow);
 }
 
 .hero-headline {
   font-family: var(--font-display);
-  font-size: var(--text-hero);
+  font-size: clamp(2.5rem, 6.5vw, 4.8rem);
   font-weight: 800;
   letter-spacing: var(--tracking-editorial);
-  line-height: 0.94;
+  line-height: 0.95;
   color: #ffffff;
   text-transform: uppercase;
+  margin-top: 4px;
 }
 
 .hero-headline-accent {
   color: var(--platform-color);
-  text-shadow: 0 0 25px var(--platform-glow);
+  text-shadow: 0 0 30px var(--platform-glow);
+  transition: color var(--transition), text-shadow var(--transition);
+}
+
+.hero-subheadline {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  max-width: 720px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
 }
 
 .hero-divider {
   width: 100%;
   height: 1px;
   background-color: var(--border-color);
-  margin: var(--space-lg) 0 var(--space-md);
+  margin: var(--space-md) 0;
 }
 
+/* Supported Channels Row -------------------------------------------------- */
 .hero-platforms-bar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  flex-direction: column;
+  gap: 12px;
   font-size: var(--text-label);
   letter-spacing: var(--tracking-mono);
 }
 
-.hero-platforms-label {
-  color: var(--text-muted);
-  font-weight: 700;
-}
-
-.hero-platforms-list {
+.hero-channels-header {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-}
-
-.hero-platform-badge {
-  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
-  border: 1px solid var(--border-color);
-  background-color: var(--surface-card);
-  font-size: var(--text-label);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  transition: var(--transition-fast);
 }
 
-.hero-platform-logo {
+.hero-terminal-icon {
+  color: var(--platform-color);
+}
+
+.hero-platforms-label {
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.hero-channels-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.hero-channel-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  background-color: var(--surface-card);
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-channel-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  transition: width 0.2s ease;
+}
+
+.hero-channel-card:hover {
+  transform: translateY(-2px);
+}
+
+.hero-channel-card:hover::before {
+  width: 5px;
+}
+
+.hero-channel-logo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.badge-yt {
-  border-color: rgba(255, 0, 0, 0.35);
-  background: rgba(255, 0, 0, 0.05);
-  color: #ff4d4d;
-}
-.badge-yt:hover {
-  border-color: #ff0000;
-  box-shadow: 0 0 16px rgba(255, 0, 0, 0.3);
+.hero-channel-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.badge-tt {
-  border-color: rgba(0, 242, 254, 0.35);
-  background: rgba(0, 242, 254, 0.05);
-  color: #00f2fe;
-}
-.badge-tt:hover {
-  border-color: #00f2fe;
-  box-shadow: 0 0 16px rgba(0, 242, 254, 0.3);
+.hero-channel-name {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.04em;
 }
 
-.badge-ig {
-  border-color: rgba(225, 48, 108, 0.35);
-  background: rgba(225, 48, 108, 0.05);
-  color: #ff69b4;
-}
-.badge-ig:hover {
-  border-color: #e1306c;
-  box-shadow: 0 0 16px rgba(225, 48, 108, 0.3);
+.hero-channel-badge {
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
-.badge-x {
-  border-color: rgba(29, 155, 240, 0.35);
-  background: rgba(29, 155, 240, 0.05);
-  color: #1d9bf0;
+/* Platform channel specific borders and glows */
+.channel-yt::before { background-color: var(--brand-youtube); }
+.channel-yt:hover {
+  border-color: var(--brand-youtube);
+  box-shadow: 0 0 16px var(--brand-youtube-glow);
 }
-.badge-x:hover {
-  border-color: #1d9bf0;
-  box-shadow: 0 0 16px rgba(29, 155, 240, 0.3);
+.channel-yt:hover .hero-channel-badge { color: #ff6666; }
+
+.channel-tt::before { background-color: var(--brand-tiktok); }
+.channel-tt:hover {
+  border-color: var(--brand-tiktok);
+  box-shadow: 0 0 16px var(--brand-tiktok-glow);
 }
+.channel-tt:hover .hero-channel-badge { color: #00f2fe; }
+
+.channel-ig::before { background-color: var(--brand-instagram); }
+.channel-ig:hover {
+  border-color: var(--brand-instagram);
+  box-shadow: 0 0 16px var(--brand-instagram-glow);
+}
+.channel-ig:hover .hero-channel-badge { color: #ff69b4; }
+
+.channel-x::before { background-color: var(--brand-x); }
+.channel-x:hover {
+  border-color: var(--brand-x);
+  box-shadow: 0 0 16px var(--brand-x-glow);
+}
+.channel-x:hover .hero-channel-badge { color: #1d9bf0; }
 
 @media (max-width: 640px) {
   .hero {
-    padding: var(--space-lg) var(--space-md);
+    padding: var(--space-md);
   }
-  .hero-brand-block {
-    padding-top: var(--space-md);
+  .hero-meta-right .hero-meta-chip {
+    display: none;
   }
-  .hero-platforms-bar {
-    flex-direction: column;
-    align-items: flex-start;
+  .hero-channels-list {
+    grid-template-columns: 1fr;
   }
 }

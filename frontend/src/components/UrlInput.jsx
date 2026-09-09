@@ -1,4 +1,4 @@
-import { ArrowUpRight, Clipboard } from "lucide-react";
+import { ArrowUpRight, Clipboard, CheckCircle2, ShieldCheck, Music, Video, Image as ImageIcon } from "lucide-react";
 import { YouTubeLogo, TikTokLogo, InstagramLogo, XLogo } from "./BrandLogos";
 import { platformLabel } from "../utils/detectPlatform";
 
@@ -30,7 +30,7 @@ function UrlInput({
         }
       }
     } catch {
-      // Clipboard permission denied or unsupported
+      // Clipboard permission denied
     }
   }
 
@@ -46,9 +46,12 @@ function UrlInput({
   return (
     <form className="url-form" onSubmit={onSubmit} noValidate>
       <div className="url-form-header mono">
-        <label htmlFor="url-input" className="url-input-label">
-          SOURCE STREAM URL_
-        </label>
+        <div className="url-header-left">
+          <span className="url-input-status-dot" />
+          <label htmlFor="url-input" className="url-input-label">
+            STREAM INPUT / COMMAND DECK_
+          </label>
+        </div>
         {navigator?.clipboard?.readText ? (
           <button
             type="button"
@@ -58,8 +61,9 @@ function UrlInput({
             title="Paste dari clipboard"
             aria-label="Paste dari clipboard"
           >
-            <Clipboard size={14} strokeWidth={2.5} aria-hidden="true" />
+            <Clipboard size={13} strokeWidth={2.5} aria-hidden="true" />
             <span>PASTE LINK</span>
+            <kbd className="url-paste-kbd">[Ctrl+V]</kbd>
           </button>
         ) : null}
       </div>
@@ -70,7 +74,7 @@ function UrlInput({
           className="url-field mono"
           type="url"
           value={value}
-          placeholder="PASTE LINK (YOUTUBE, TIKTOK, INSTAGRAM, X)..."
+          placeholder="ENTER OR PASTE PUBLIC MEDIA URL (YOUTUBE, TIKTOK, INSTAGRAM, X)..."
           autoComplete="off"
           spellCheck="false"
           aria-invalid={hasError}
@@ -83,13 +87,13 @@ function UrlInput({
           className="url-submit-btn mono"
           type="submit"
           disabled={!canSubmit || isLoading}
-          aria-label="Analisis URL media"
+          aria-label="Ekstrak media stream"
         >
           {isLoading ? (
-            <span className="url-btn-text">ANALYZING...</span>
+            <span className="url-btn-text">EXTRACTING...</span>
           ) : (
             <>
-              <span className="url-btn-text">ANALYZE</span>
+              <span className="url-btn-text">ANALYZE STREAM</span>
               <ArrowUpRight size={16} strokeWidth={2.5} aria-hidden="true" />
             </>
           )}
@@ -98,7 +102,7 @@ function UrlInput({
 
       <div className="url-footer mono">
         <div className="url-platforms-row" aria-label="Platform terdeteksi">
-          <span className="url-platforms-prefix">PLATFORMS:</span>
+          <span className="url-platforms-prefix">RESOLVER:</span>
           <div className="url-platform-chips">
             {PLATFORMS.map((p) => {
               const isCurrent = detected && detectedPlatform === p.id;
@@ -108,8 +112,9 @@ function UrlInput({
                   className={`url-platform-chip chip-${p.id} ${isCurrent ? "is-active" : ""}`}
                   title={p.label}
                 >
-                  <span className="chip-logo">{p.renderLogo(16)}</span>
+                  <span className="chip-logo">{p.renderLogo(14)}</span>
                   <span className="chip-name">{p.label}</span>
+                  {isCurrent ? <CheckCircle2 size={11} className="chip-check" aria-hidden="true" /> : null}
                 </div>
               );
             })}
@@ -122,8 +127,27 @@ function UrlInput({
               READY: {platformLabel(detectedPlatform)}
             </span>
           ) : (
-            <span className="url-idle-label">WAITING FOR URL_</span>
+            <span className="url-idle-label">AWAITING INPUT_</span>
           )}
+        </div>
+      </div>
+
+      <div className="deck-spec-bar mono" aria-label="Spesifikasi Pipeline">
+        <div className="deck-spec-chip spec-video">
+          <Video size={12} aria-hidden="true" />
+          <span>H.264 UNIVERSAL (FASTSTART)</span>
+        </div>
+        <div className="deck-spec-chip spec-audio">
+          <Music size={12} aria-hidden="true" />
+          <span>192K STEREO MP3</span>
+        </div>
+        <div className="deck-spec-chip spec-photo">
+          <ImageIcon size={12} aria-hidden="true" />
+          <span>ORIGINAL RESOLUTION</span>
+        </div>
+        <div className="deck-spec-chip spec-security">
+          <ShieldCheck size={12} aria-hidden="true" />
+          <span>ZERO-LOG CDN PROXY</span>
         </div>
       </div>
     </form>

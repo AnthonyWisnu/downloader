@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, HelpCircle } from "lucide-react";
 
 const faqs = [
   {
@@ -34,7 +34,7 @@ const faqs = [
   }
 ];
 
-function FaqItem({ faq, isOpen, onToggle }) {
+function FaqItem({ faq, index, isOpen, onToggle }) {
   return (
     <div className={`faq-item ${isOpen ? "is-open" : ""}`}>
       <button
@@ -43,11 +43,14 @@ function FaqItem({ faq, isOpen, onToggle }) {
         aria-expanded={isOpen}
         onClick={onToggle}
       >
-        <span>{faq.question}</span>
+        <div className="faq-question-text-wrap">
+          <span className="faq-index">[{String(index + 1).padStart(2, "0")}]</span>
+          <span className="faq-title">{faq.question}</span>
+        </div>
         {isOpen ? (
-          <Minus size={16} strokeWidth={2.5} aria-hidden="true" />
+          <Minus size={16} strokeWidth={2.5} className="faq-toggle-icon" aria-hidden="true" />
         ) : (
-          <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
+          <Plus size={16} strokeWidth={2.5} className="faq-toggle-icon" aria-hidden="true" />
         )}
       </button>
 
@@ -64,11 +67,14 @@ function FAQSection() {
   }
 
   return (
-    <section className="section bg-black" aria-label="Frequently Asked Questions">
+    <section className="section faq-section" aria-label="Frequently Asked Questions">
       <div className="section-inner faq-inner">
         <div className="faq-header-bar mono">
-          <span className="section-tag">[07] FREQUENT INQUIRIES</span>
-          <span className="faq-header-status">TECHNICAL REFERENCE</span>
+          <div className="faq-header-left">
+            <HelpCircle size={14} className="faq-header-icon" aria-hidden="true" />
+            <span className="section-tag">[06] FREQUENT INQUIRIES</span>
+          </div>
+          <span className="faq-header-status">TECHNICAL REFERENCE &amp; SPECS</span>
         </div>
 
         <div className="faq-list">
@@ -76,6 +82,7 @@ function FAQSection() {
             <FaqItem
               key={faq.question}
               faq={faq}
+              index={index}
               isOpen={openIndex === index}
               onToggle={() => toggle(index)}
             />

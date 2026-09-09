@@ -1,52 +1,63 @@
 import { YouTubeLogo, TikTokLogo, InstagramLogo, XLogo } from "./BrandLogos";
+import { Radio, ArrowUpRight } from "lucide-react";
 
 const platforms = [
   {
     id: "youtube",
-    tag: "YOUTUBE",
+    tag: "CH.01",
     name: "YouTube",
-    scope: "VIDEO & AUDIO",
+    scope: "VIDEO & AUDIO MATRIX",
     colorClass: "card-youtube",
-    logo: <YouTubeLogo size={28} />,
-    description: "Download Full HD/4K videos, Shorts, and extracted 320kbps MP3 audio tracks."
+    logo: <YouTubeLogo size={32} />,
+    formats: ["1080P FHD", "SHORTS", "192K MP3", "AUDIO ONLY"],
+    description: "Extract Full HD videos, YouTube Shorts, and dedicated audio tracks with instant stream playback."
   },
   {
     id: "tiktok",
-    tag: "TIKTOK",
+    tag: "CH.02",
     name: "TikTok",
-    scope: "VIDEO & SLIDESHOW",
+    scope: "WATERMARK-FREE ENGINE",
     colorClass: "card-tiktok",
-    logo: <TikTokLogo size={28} />,
-    description: "Download crystal-clear watermark-free videos, slideshow photo carousels, and audio."
+    logo: <TikTokLogo size={32} />,
+    formats: ["NO WATERMARK", "SLIDESHOW", "SOUND MP3", "WATERMARK"],
+    description: "Extract clean, watermark-free videos, multi-image slideshow carousels, and viral background sounds."
   },
   {
     id: "instagram",
-    tag: "INSTAGRAM",
+    tag: "CH.03",
     name: "Instagram",
-    scope: "REELS, POST, STORY",
+    scope: "FEED, REELS, STORIES",
     colorClass: "card-instagram",
-    logo: <InstagramLogo size={28} />,
-    description: "Extract high-resolution Reels, multi-image post carousels, and active public Stories."
+    logo: <InstagramLogo size={32} />,
+    formats: ["REELS MP4", "FEED POSTS", "PUBLIC STORIES", "CAROUSEL"],
+    description: "Query high-bitrate Reels, multi-post image albums, and active public Stories without quality downsampling."
   },
   {
     id: "x",
-    tag: "X (TWITTER)",
+    tag: "CH.04",
     name: "X (Twitter)",
-    scope: "VIDEO, GIF, PHOTOS",
+    scope: "MEDIA & ORIG PHOTO",
     colorClass: "card-x",
-    logo: <XLogo size={28} />,
-    description: "Download high-definition video clips, looping GIFs, and original high-res photos."
+    logo: <XLogo size={32} />,
+    formats: ["MP4 VIDEO", "ORIGINAL JPG", "LOOPING GIF", "AUDIO"],
+    description: "Download embedded video clips, looping GIFs, and full uncompressed master photos up to 4 images per tweet."
   }
 ];
 
 function PlatformCard({ platform }) {
   return (
-    <article className={`platform-card card ${platform.colorClass}`}>
+    <article className={`platform-card ${platform.colorClass}`}>
+      <span className="deck-corner deck-corner-tl" aria-hidden="true">+</span>
+      <span className="deck-corner deck-corner-tr" aria-hidden="true">+</span>
+
       <div className="platform-card-header">
         <div className="platform-card-logo-wrap">
           {platform.logo}
         </div>
-        <span className="platform-card-tag mono">[{platform.tag}]</span>
+        <div className="platform-card-tag-wrap mono">
+          <span className="platform-card-tag">[{platform.tag}]</span>
+          <ArrowUpRight size={14} className="platform-card-arrow" aria-hidden="true" />
+        </div>
       </div>
 
       <div className="platform-card-body">
@@ -55,6 +66,14 @@ function PlatformCard({ platform }) {
         </div>
         <h3 className="platform-card-title">{platform.name}</h3>
         <p className="platform-card-text">{platform.description}</p>
+
+        <div className="platform-format-pills mono" aria-label="Format yang didukung">
+          {platform.formats.map((fmt) => (
+            <span key={fmt} className="platform-format-pill">
+              {fmt}
+            </span>
+          ))}
+        </div>
       </div>
     </article>
   );
@@ -62,14 +81,17 @@ function PlatformCard({ platform }) {
 
 function PlatformSupport() {
   return (
-    <section className="section bg-black" aria-label="Platform yang didukung">
+    <section className="section platform-section" aria-label="Platform yang didukung">
       <div className="section-inner platform-inner">
         <div className="platform-header-bar mono">
-          <span className="section-tag">[03] SUPPORT MATRIX</span>
-          <span className="platform-header-status">OFFICIAL PROTOCOLS ACTIVE</span>
+          <div className="platform-header-left">
+            <Radio size={14} className="platform-header-icon" aria-hidden="true" />
+            <span className="section-tag">[03] CHANNEL MATRIX</span>
+          </div>
+          <span className="platform-header-status">ALL PROTOCOLS ACTIVE (4/4)</span>
         </div>
 
-        <div className="grid grid-2 platform-grid">
+        <div className="platform-grid">
           {platforms.map((platform) => (
             <PlatformCard key={platform.id} platform={platform} />
           ))}

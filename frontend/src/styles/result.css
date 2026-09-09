@@ -3,24 +3,26 @@
    ========================================================================== */
 
 .result-section {
-  background-color: var(--bg);
   border-bottom: 1px solid var(--border-color);
-  padding: var(--space-xl) var(--space-md);
+  padding: var(--space-lg) var(--space-md);
+  position: relative;
 }
 
 .result-inner {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  max-width: var(--max-width);
+  margin: 0 auto;
 }
 
 .result-tag-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--text-label);
+  font-size: 0.72rem;
   letter-spacing: var(--tracking-mono);
-  color: var(--text-muted);
+  color: var(--text-dim);
 }
 
 .result-sys-status {
@@ -31,11 +33,13 @@
 /* Master Result Card ------------------------------------------------------ */
 .media-result-card {
   width: 100%;
-  background-color: var(--surface-card);
-  border: 1px solid var(--border-color);
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color-light);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
   position: relative;
   overflow: hidden;
 }
