@@ -1,4 +1,4 @@
-# AGENT.md: Multi-Platform Media Downloader (YouTube, TikTok, Instagram, X)
+# AGENTS.md: Multi-Platform Media Downloader (YouTube, TikTok, Instagram, X)
 
 ## Ringkasan Proyek
 
@@ -105,7 +105,7 @@ Hosting Produksi: VPS Ubuntu 24.04, PM2 (user non-root), Nginx Reverse Proxy, SS
 │
 ├── ecosystem.config.js                 : konfigurasi PM2
 ├── .gitignore
-├── AGENT.md
+├── AGENTS.md
 └── README.md
 ```
 

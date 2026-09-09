@@ -136,7 +136,7 @@ Sistem produksi aktif dan berjalan di: `https://voiddl.my.id`
 │   └── package.json
 │
 ├── ecosystem.config.js                 # Konfigurasi proses PM2
-├── AGENT.md                            # Pedoman dan aturan arsitektur untuk developer/agent
+├── AGENTS.md                           # Pedoman dan aturan arsitektur untuk developer/agent
 ├── DESIGN.md                           # Dokumentasi desain sistem VOID Brutalist 2.0
 ├── PLAN.md                             # Catatan tahapan refactor sistem
 └── README.md                           # Dokumentasi teknis proyek
