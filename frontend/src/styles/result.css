@@ -1,0 +1,317 @@
+/* ==========================================================================
+   VOID Design System - Result Section & Media Components
+   ========================================================================== */
+
+.result-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.result-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.result-reset {
+  padding: 10px 18px;
+  font-size: var(--text-small);
+}
+
+.result-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--white);
+  border: var(--border-thick);
+  box-shadow: var(--shadow-lg);
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.result-type {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.result-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Media preview ----------------------------------------------------------- */
+.media-preview {
+  width: 100%;
+  border: var(--border-thick);
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.media-preview.is-portrait {
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.media-preview-button {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: var(--ink);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.media-preview-button:hover .media-preview-label {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.media-video {
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  background: var(--ink);
+}
+
+.media-image {
+  width: 100%;
+  object-fit: contain;
+}
+
+.media-preview-label {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 6px 12px;
+  background: var(--yellow);
+  color: var(--ink);
+  border: var(--border);
+  transition: var(--transition);
+}
+
+/* Download list ----------------------------------------------------------- */
+.download-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.download-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.download-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--off-white);
+  border: var(--border);
+}
+
+.download-label {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.download-action {
+  padding: 10px 18px;
+  font-size: var(--text-small);
+}
+
+.download-action.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Audio card -------------------------------------------------------------- */
+.audio-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: var(--purple);
+  color: var(--white);
+  border: var(--border-thick);
+  box-shadow: var(--shadow-sm);
+}
+
+.audio-card-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.audio-card-player {
+  width: 100%;
+}
+
+/* Audio warning ----------------------------------------------------------- */
+.audio-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--orange);
+  color: var(--ink);
+  border: var(--border);
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+
+/* Slideshow --------------------------------------------------------------- */
+.slideshow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.slideshow-frame {
+  position: relative;
+  border: var(--border-thick);
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.slideshow-image {
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+}
+
+.slideshow-nav {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  pointer-events: none;
+}
+
+.slideshow-nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--yellow);
+  color: var(--ink);
+  border: var(--border);
+  box-shadow: var(--shadow-sm);
+  pointer-events: auto;
+  transition: var(--transition);
+}
+
+.slideshow-nav-button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-md);
+}
+
+.slideshow-nav-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.slideshow-counter {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  font-size: var(--text-label);
+  font-weight: 700;
+  padding: 4px 10px;
+  background: var(--ink);
+  color: var(--off-white);
+  border: var(--border);
+}
+
+.slideshow-download {
+  font-size: var(--text-small);
+}
+
+/* Preview modal ----------------------------------------------------------- */
+.preview-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  background: rgba(17, 17, 17, 0.85);
+}
+
+.preview-modal-panel {
+  position: relative;
+  width: min(100%, 720px);
+  border: var(--border-thick);
+  background: var(--ink);
+  box-shadow: var(--shadow-lg);
+}
+
+.preview-close {
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--pink);
+  color: var(--ink);
+  border: var(--border-thick);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.preview-close:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-md);
+}
+
+.preview-close:active {
+  transform: translate(2px, 2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.preview-modal-video {
+  width: 100%;
+  max-height: 80vh;
+  background: var(--ink);
+}

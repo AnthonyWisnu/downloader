@@ -1,9 +1,10 @@
 const fs = require("fs");
-const os = require("os");
-const path = require("path");
+const {
+  TOKEN_PATTERN,
+  getCacheFilePath,
+  hasUsableFile
+} = require("../services/media-cache.service");
 
-const DOWNLOAD_CACHE_DIR = path.join(os.tmpdir(), "void-dl-cache");
-const TOKEN_PATTERN = /^[a-f0-9]{32}$/i;
 const FILE_TYPES = {
   audio: {
     extension: "mp3",
@@ -22,7 +23,7 @@ function getFileType(req) {
 }
 
 function getFilePath(token, fileType) {
-  return path.join(DOWNLOAD_CACHE_DIR, `${token}.${fileType.extension}`);
+  return getCacheFilePath(token, fileType.extension);
 }
 
 function streamFile(req, res, filePath, fileType) {
@@ -71,7 +72,7 @@ function downloadFile(req, res) {
 
   const filePath = getFilePath(token, fileType);
 
-  if (!fs.existsSync(filePath) || fs.statSync(filePath).size === 0) {
+  if (!hasUsableFile(filePath)) {
     res.status(404).json({ error: "ERR: File tidak ditemukan" });
     return;
   }

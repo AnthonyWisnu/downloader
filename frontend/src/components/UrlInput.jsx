@@ -16,12 +16,14 @@ function UrlInput({
       ? "badge-cyan"
       : detectedPlatform === "instagram"
         ? "badge-pink"
-        : "badge-yellow";
+        : detectedPlatform === "youtube"
+          ? "badge-red"
+          : "badge-yellow";
 
   return (
     <form className="url-form" onSubmit={onSubmit}>
       <label className="sr-only" htmlFor="url-input">
-        URL TikTok atau Instagram
+        URL TikTok, Instagram, YouTube, atau X (Twitter)
       </label>
 
       <input
@@ -29,7 +31,7 @@ function UrlInput({
         className={hasError ? "url-field has-error" : "url-field"}
         type="url"
         value={value}
-        placeholder="Tempel link TikTok atau Instagram di sini..."
+        placeholder="Tempel link TikTok, Instagram, YouTube, atau X (Twitter) di sini..."
         autoComplete="off"
         spellCheck="false"
         aria-invalid={hasError}
@@ -38,7 +40,7 @@ function UrlInput({
       />
 
       <p className="url-microcopy mono">
-        Mendukung TikTok video, Instagram Reels, Post, dan Story
+        Mendukung TikTok video, Instagram Reels/Post/Story, YouTube, dan X (Twitter) media
       </p>
 
       <button

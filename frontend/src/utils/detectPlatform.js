@@ -13,6 +13,14 @@ export function detectPlatform(url) {
     if (hostname.includes("instagram.com") || hostname.includes("instagr.am")) {
       return "instagram";
     }
+
+    if (hostname.includes("youtube.com") || hostname.includes("youtu.be")) {
+      return "youtube";
+    }
+
+    if (hostname.includes("x.com") || hostname.includes("twitter.com")) {
+      return "x";
+    }
   } catch {
     return "unknown";
   }
@@ -33,12 +41,26 @@ export function platformLabel(platform, type) {
     return "INSTAGRAM";
   }
 
+  if (platform === "youtube" && type === "shorts") {
+    return "YOUTUBE SHORTS";
+  }
+
+  if (platform === "youtube") {
+    return "YOUTUBE";
+  }
+
+  if (platform === "x") {
+    return "X (TWITTER)";
+  }
+
   return "UNKNOWN";
 }
 
 export function typeLabel(type) {
   const labels = {
     video: "VIDEO",
+    shorts: "SHORTS",
+    gif: "GIF",
     audio: "AUDIO",
     slideshow: "SLIDESHOW",
     reels: "REELS",

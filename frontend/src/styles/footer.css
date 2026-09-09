@@ -1,0 +1,123 @@
+/* ==========================================================================
+   VOID Design System - Footer & Global Responsive Overrides
+   ========================================================================== */
+
+.footer {
+  padding: var(--space-xl) var(--space-md) var(--space-lg);
+  border-top: 6px solid var(--yellow);
+}
+
+.footer-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.footer-logo {
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--yellow);
+}
+
+.footer-tagline {
+  font-size: var(--text-small);
+  font-weight: 500;
+  color: var(--off-white);
+}
+
+.footer-disclaimer {
+  max-width: 620px;
+  font-size: var(--text-small);
+  color: var(--off-white);
+  opacity: 0.7;
+}
+
+.footer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  align-items: center;
+  padding-top: var(--space-sm);
+  border-top: var(--border);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.footer-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--off-white);
+  border-radius: 50%;
+}
+
+.footer-dot.is-ok {
+  background: var(--lime);
+}
+
+.footer-dot.is-error {
+  background: var(--pink);
+}
+
+/* Responsive: mobile ----------------------------------------------------- */
+@media (max-width: 767px) {
+  .section {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .media-video,
+  .slideshow-image {
+    max-height: 280px;
+  }
+
+  .platform-inner,
+  .feature-grid-inner,
+  .howto-inner,
+  .faq-inner {
+    gap: var(--space-md);
+  }
+
+  .result-topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .result-reset {
+    justify-content: center;
+  }
+
+  .download-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .download-action {
+    justify-content: center;
+  }
+}
+
+/* Hormati preferensi reduce motion -------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

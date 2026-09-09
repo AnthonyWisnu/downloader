@@ -1,0 +1,141 @@
+/* ==========================================================================
+   VOID Design System - Downloader Panel & URL Form
+   ========================================================================== */
+
+.downloader-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.downloader-card {
+  width: 100%;
+  max-width: var(--panel-width);
+  padding: var(--space-md);
+  background: var(--off-white);
+  border: var(--border-thick);
+  box-shadow: var(--shadow-lg);
+}
+
+.downloader-loading {
+  margin-top: var(--space-sm);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.downloader-loading-dots {
+  animation: loading-blink 1s steps(4, end) infinite;
+}
+
+@keyframes loading-blink {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.downloader-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: var(--space-sm);
+  padding: 14px 16px;
+  background: var(--pink);
+  color: var(--ink);
+  border: var(--border-thick);
+  box-shadow: var(--shadow-sm);
+  font-weight: 600;
+}
+
+/* URL Form ---------------------------------------------------------------- */
+.url-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.url-field {
+  width: 100%;
+  padding: 16px 18px;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  background: var(--white);
+  color: var(--ink);
+  border: var(--border-thick);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.url-field::placeholder {
+  color: #999;
+}
+
+.url-field:focus {
+  outline: none;
+  border-color: var(--ink);
+  box-shadow: var(--shadow-md);
+}
+
+.url-field.has-error {
+  border-color: var(--ink);
+  background: #fff0f5;
+}
+
+.url-microcopy {
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--ink);
+  opacity: 0.8;
+}
+
+.url-grab {
+  padding: 18px 24px;
+  font-size: 1.1rem;
+  background: var(--ink);
+  color: var(--yellow);
+  border: var(--border-thick);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+}
+
+.url-grab:hover:not(:disabled) {
+  background: var(--yellow);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+  transform: translate(-2px, -2px);
+}
+
+.url-grab:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.url-status {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.url-status-empty {
+  color: var(--ink);
+  opacity: 0.5;
+}
+
+.loading-help-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: #71717a;
+  margin-top: 6px;
+  letter-spacing: 0.05em;
+}

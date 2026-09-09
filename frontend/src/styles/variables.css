@@ -17,6 +17,7 @@
   --cyan: #38d5ff;
   --lime: #9cff57;
   --orange: #ff8a3d;
+  --red: #ff3344;
 
   /* Warna status */
   --status-ok: var(--lime);

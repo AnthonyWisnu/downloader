@@ -16,6 +16,24 @@ const INSTAGRAM_HOSTS = new Set([
   "www.instagr.am"
 ]);
 
+const YOUTUBE_HOSTS = new Set([
+  "youtube.com",
+  "www.youtube.com",
+  "m.youtube.com",
+  "music.youtube.com",
+  "youtu.be",
+  "www.youtu.be"
+]);
+
+const X_HOSTS = new Set([
+  "x.com",
+  "www.x.com",
+  "mobile.x.com",
+  "twitter.com",
+  "www.twitter.com",
+  "mobile.twitter.com"
+]);
+
 function getPlatform(hostname) {
   if (TIKTOK_HOSTS.has(hostname) || hostname.endsWith(".tiktok.com")) {
     return "tiktok";
@@ -23,6 +41,14 @@ function getPlatform(hostname) {
 
   if (INSTAGRAM_HOSTS.has(hostname) || hostname.endsWith(".instagram.com")) {
     return "instagram";
+  }
+
+  if (YOUTUBE_HOSTS.has(hostname) || hostname.endsWith(".youtube.com") || hostname.endsWith(".youtu.be")) {
+    return "youtube";
+  }
+
+  if (X_HOSTS.has(hostname) || hostname.endsWith(".x.com") || hostname.endsWith(".twitter.com")) {
+    return "x";
   }
 
   return null;

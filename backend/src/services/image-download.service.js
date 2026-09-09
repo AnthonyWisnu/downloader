@@ -1,24 +1,8 @@
-const { execFile } = require("child_process");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { pipeline } = require("stream/promises");
-
-function runFfmpeg(args) {
-  return new Promise((resolve, reject) => {
-    execFile("ffmpeg", args, { maxBuffer: 1024 * 1024 * 4 }, (error, stdout, stderr) => {
-      if (error) {
-        const message = error.code === "ENOENT"
-          ? "ffmpeg belum terinstall"
-          : `ffmpeg gagal convert gambar: ${String(stderr || error.message).slice(0, 300)}`;
-        reject(new Error(message));
-        return;
-      }
-
-      resolve(stdout);
-    });
-  });
-}
+const { runFfmpeg } = require("../utils/execTool");
 
 function getTempPath(extension) {
   const name = `void-image-${Date.now()}-${Math.random().toString(16).slice(2)}.${extension}`;

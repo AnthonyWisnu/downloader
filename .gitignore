@@ -1,4 +1,5 @@
-backend/cookies/ig_cookies.txt
+backend/cookies/*.txt
+!backend/cookies/.gitkeep
 backend/.env
 node_modules/
 dist/

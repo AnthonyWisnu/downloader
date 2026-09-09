@@ -1,61 +1,77 @@
-# PLAN.md
+# PLAN.md - Refactor Arsitektur & Penambahan Fitur YouTube & X (Twitter) Downloader
 
-## Scope Sesi Ini
+Dokumen ini adalah rencana kerja dan status eksekusi bertahap untuk refactor backend, modularitas CSS frontend, penguncian versi TikTok v1, serta implementasi YouTube dan X (Twitter) Downloader dengan dukungan cookies.
 
-Rencana ini khusus untuk dua perubahan kecil: migrasi TikTok downloader ke API v3 dan loading indicator dengan elapsed timer. Perubahan tetap mengikuti `AGENT.md` dan `DESIGN.md`.
+---
 
-## Checklist Per File
+## 1. Scope & Tujuan Pekerjaan
 
-### backend/src/services/tiktok.service.js
+1. **Unifikasi Eksekusi Proses Eksternal**:
+   Menghilangkan implementasi berulang `execFile` (`runYtDlp`, `runFfmpeg`, `runTool`) di 6 file ke satu utilitas terpusat: `backend/src/utils/execTool.js`.
+2. **Unifikasi Logika Caching Media**:
+   Menyatukan penanganan file temporer, token SHA-256, I/O stream, dan pembersihan berkala ke service terpusat: `backend/src/services/media-cache.service.js`.
+3. **Penguncian Versi TikTok Downloader**:
+   Memastikan pemanggilan `@tobyg74/tiktok-api-dl` dikunci pada `{ version: "v1" }` karena terbukti lebih stabil dan lengkap dibandingkan v3.
+4. **Modularitas Styling Frontend**:
+   Memecah `frontend/src/globals.css` (~18KB) menjadi modul terpisah per seksi (`hero.css`, `downloader.css`, `result.css`, `sections.css`, `footer.css`) yang di-import secara bersih.
+5. **Fitur Baru - YouTube Downloader**:
+   Mendukung unduhan video YouTube reguler dan Shorts (MP4 iOS-safe & Audio MP3) menggunakan `yt-dlp` dengan dukungan cookies Netscape `backend/cookies/yt_cookies.txt`.
+6. **Fitur Baru - X (Twitter) Downloader**:
+   Mendukung unduhan semua jenis media dari X: Video MP4 (iOS-safe), GIF tweet (MP4 loop), Audio MP3, dan Foto tweet (1-4 gambar resolusi original `name=orig` via penampil `SlideshowPreview`). Menyiapkan cookies opsional `backend/cookies/x_cookies.txt`.
 
-- [x] Ubah pemanggilan downloader dari `{ version: "v1" }` ke `{ version: "v3" }`.
-  Alasan: versi v3 menyediakan field TikTok terbaru yang lebih sesuai untuk video, audio, dan slideshow.
+---
 
-- [x] Prioritaskan field v3 untuk video no watermark: `payload.videoHD` dan `payload.videoSD`.
-  Alasan: hasil video utama di v3 berada di field tersebut.
+## 2. Checklist Status per Komponen
 
-- [x] Prioritaskan field v3 untuk video watermark: `payload.videoWatermark`.
-  Alasan: field watermark v3 berbeda dari v1.
+### A. Utilitas Eksekusi & Caching (Backend)
+- [x] Buat `backend/src/utils/execTool.js` (helper Promise terpusat untuk yt-dlp, ffmpeg, ffprobe dengan error handling ramah).
+- [x] Buat `backend/src/services/media-cache.service.js` (konstanta `DOWNLOAD_CACHE_DIR`, `TOKEN_PATTERN`, helper cache file dan pembersihan berkala).
+- [x] Refactor `backend/src/services/video-cache.service.js` menggunakan `media-cache.service.js`.
+- [x] Refactor `backend/src/services/audio-cache.service.js` menggunakan `media-cache.service.js` dan `runFfmpeg`.
+- [x] Refactor `backend/src/services/video-normalize.service.js` menggunakan `runFfmpeg` dan `runFfprobe`.
+- [x] Refactor `backend/src/services/image-download.service.js` menggunakan `runFfmpeg`.
+- [x] Refactor `backend/src/controllers/preview.controller.js` menggunakan `runYtDlp`.
+- [x] Refactor `backend/src/controllers/file.controller.js` menggunakan `media-cache.service.js`.
+- [x] Refactor `backend/src/app.js` menggunakan `cleanupExpiredCache` dan `validateAllCookiesOnStartup`.
 
-- [x] Prioritaskan field v3 untuk audio: `payload.music`, `payload.music.play`, dan `payload.music.playUrl`.
-  Alasan: v3 bisa mengembalikan audio sebagai string atau object.
+### B. TikTok Downloader (Penguncian ke v1)
+- [x] Refactor `backend/src/services/tiktok.service.js` menggunakan `runYtDlp` dari `execTool.js`.
+- [x] Kunci pemanggilan `downloader(url, { version: "v1" })` secara permanen ke v1.
+- [x] Skema ekstraksi video tanpa watermark, watermark, dan audio MP3 diverifikasi stabil.
 
-- [x] Pertahankan fallback field v1 di `firstString()`.
-  Alasan: jika field v3 kosong, service tetap kompatibel dengan struktur lama.
+### C. YouTube Downloader (Backend & Cookies)
+- [x] Update `backend/src/services/cookies.service.js` dengan fungsi `getYoutubeCookiesPath()`, `validateYoutubeCookies()`, dan log startup.
+- [x] Update `backend/src/utils/sanitizeUrl.js` untuk mendeteksi `youtube.com`, `m.youtube.com`, `youtu.be`, dan Shorts.
+- [x] Buat `backend/src/services/youtube.service.js` dengan normalisasi video MP4 iOS-safe dan ekstraksi audio MP3.
+- [x] Integrasikan handler YouTube ke `backend/src/controllers/download.controller.js`.
+- [x] Tambahkan header referer YouTube di `backend/src/controllers/media.controller.js`.
+- [x] Tambahkan `YT_COOKIES_PATH=./cookies/yt_cookies.txt` di `backend/.env.example`.
 
-- [x] Prioritaskan metadata v3: `payload.desc`, `payload.cover`, dan `payload.author.avatar`.
-  Alasan: title dan thumbnail v3 perlu dibaca sebelum fallback v1.
+### D. X (Twitter) Downloader (Backend & Cookies)
+- [x] Update `backend/src/services/cookies.service.js` dengan `getXCookiesPath()`, `validateXCookies()`, dan `validateXCookiesOnStartup()`.
+- [x] Update `backend/src/utils/sanitizeUrl.js` untuk mendeteksi `x.com`, `twitter.com`, dan subdomain terkait.
+- [x] Buat `backend/src/services/x.service.js` dengan dukungan video MP4, GIF, audio MP3, dan foto resolusi original (`name=orig`).
+- [x] Integrasikan handler X ke `backend/src/controllers/download.controller.js`.
+- [x] Tambahkan header referer X di `backend/src/controllers/media.controller.js`.
+- [x] Tambahkan `X_COOKIES_PATH=./cookies/x_cookies.txt` di `backend/.env.example`.
+- [x] Pastikan semua file cookies `.txt` diabaikan di `.gitignore`.
 
-### frontend/src/components/LoadingSpinner.jsx
+### E. Modularitas Styling & Penyesuaian Frontend
+- [x] Pecah `frontend/src/globals.css` ke modul terpisah di `frontend/src/styles/`:
+  - `styles/hero.css`
+  - `styles/downloader.css`
+  - `styles/result.css`
+  - `styles/sections.css`
+  - `styles/footer.css`
+- [x] Tambahkan token warna `--red: #ff3344` di `styles/variables.css`.
+- [x] Tambahkan class `.badge-red` dan `.card-red` di `styles/utilities.css`.
+- [x] Rampingkan `frontend/src/globals.css` menjadi master aggregator `@import`.
+- [x] Tambahkan deteksi YouTube dan X serta label `YOUTUBE` & `X (TWITTER)` di `frontend/src/utils/detectPlatform.js`.
+- [x] Tambahkan badge dan placeholder pendukung di `frontend/src/components/UrlInput.jsx`.
+- [x] Tambahkan kartu informasi YouTube dan X (Twitter) di `frontend/src/components/PlatformSupport.jsx`.
 
-- [x] Tambahkan `useState` dan `useEffect` untuk elapsed timer.
-  Alasan: loading harus menampilkan durasi proses dalam detik.
+---
 
-- [x] Ubah teks menjadi `[ FETCHING... Xs ]`.
-  Alasan: user mendapat feedback bahwa proses masih berjalan.
-
-- [x] Tambahkan prop opsional `platform`.
-  Alasan: teks bantuan berbeda untuk Instagram.
-
-- [x] Tampilkan teks bantuan setelah timer mencapai 3 detik.
-  Alasan: informasi tambahan hanya muncul saat proses mulai terasa lama.
-
-- [x] Pastikan tidak ada spinner grafis, dots bergerak, atau animasi lain.
-  Alasan: aturan `DESIGN.md` melarang spinner grafis dan animasi berlebihan.
-
-### frontend/src/App.jsx
-
-- [x] Kirim `downloader.detectedPlatform` ke `LoadingSpinner`.
-  Alasan: loading indicator perlu tahu platform aktif untuk memilih teks bantuan.
-
-### frontend/src/globals.css
-
-- [x] Tambahkan style `.loading-help-text`.
-  Alasan: teks kecil perlu memakai warna `#71717A`, font monospace, dan ukuran kecil sesuai desain.
-
-## Verifikasi
-
-- [x] `node --check backend/src/services/tiktok.service.js`
-- [x] `npm run build` di `frontend`
-- [ ] Manual: submit URL TikTok dan pastikan backend memakai v3.
-- [ ] Manual: loading menampilkan `[ FETCHING... 0s ]`, bertambah tiap detik, dan teks bantuan muncul setelah 3 detik.
+## 3. Hasil Verifikasi
+- Syntax Check Backend: Semua file lolos `node --check` tanpa error.
+- Frontend Build: `npm run build` sukses 100% tanpa error chunk maupun bundling CSS.

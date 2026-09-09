@@ -1,0 +1,116 @@
+/* ==========================================================================
+   VOID Design System - Hero Section
+   ========================================================================== */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.hero {
+  position: relative;
+  background: var(--ink);
+  color: var(--off-white);
+  padding: var(--space-xl) var(--space-md) var(--space-lg);
+  border-bottom: 6px solid var(--yellow);
+  overflow: hidden;
+}
+
+.hero-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    var(--off-white) 1.5px,
+    transparent 1.5px
+  );
+  background-size: 28px 28px;
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.hero-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-md);
+}
+
+.hero-tag {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  padding: 6px 14px;
+  background: var(--yellow);
+  color: var(--ink);
+  border: var(--border-thick);
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-title {
+  font-size: var(--text-hero);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 0.9;
+  color: var(--yellow);
+  -webkit-text-stroke: 3px var(--off-white);
+  margin: var(--space-xs) 0;
+}
+
+.hero-subtitle {
+  max-width: 560px;
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  font-weight: 500;
+  color: var(--off-white);
+}
+
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+
+.hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+
+.hero-stat {
+  font-size: var(--text-small);
+  font-weight: 700;
+  padding: 8px 14px;
+  background: var(--off-white);
+  color: var(--ink);
+  border: var(--border-thick);
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-scroll {
+  display: inline-flex;
+  margin-top: var(--space-sm);
+  color: var(--yellow);
+  animation: hero-bounce 1.6s ease-in-out infinite;
+}
+
+@keyframes hero-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+@media (min-width: 768px) {
+  .hero {
+    padding: calc(var(--space-xl) * 1.4) var(--space-md) var(--space-xl);
+  }
+}

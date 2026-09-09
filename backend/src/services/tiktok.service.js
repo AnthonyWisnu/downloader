@@ -1,10 +1,10 @@
-const { execFile } = require("child_process");
 const crypto = require("crypto");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { getOrCreateMp3FromUrl } = require("./audio-cache.service");
 const { downloadUrlToFile, getOrCreateNormalizedVideo } = require("./video-cache.service");
+const { runYtDlp } = require("../utils/execTool");
 
 const DOWNLOAD_CACHE_DIR = path.join(os.tmpdir(), "void-dl-cache");
 
@@ -63,19 +63,6 @@ function getDownloadToken(url) {
   return crypto.createHash("sha256").update(url).digest("hex").slice(0, 32);
 }
 
-function runYtDlp(args) {
-  return new Promise((resolve, reject) => {
-    execFile("yt-dlp", args, { maxBuffer: 1024 * 1024 * 16 }, (error, stdout, stderr) => {
-      if (error) {
-        error.stderr = stderr;
-        reject(error);
-        return;
-      }
-
-      resolve(stdout);
-    });
-  });
-}
 
 function logAudioFallbackError(error) {
   const message = String(error?.stderr || error?.message || "").trim();

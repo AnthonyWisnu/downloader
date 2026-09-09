@@ -1,6 +1,8 @@
 const { sanitizeUrl } = require("../utils/sanitizeUrl");
 const { downloadTikTok } = require("../services/tiktok.service");
 const { downloadInstagram } = require("../services/instagram.service");
+const { downloadYouTube } = require("../services/youtube.service");
+const { downloadX } = require("../services/x.service");
 
 const DEFAULT_ERROR = "URL tidak valid atau konten tidak dapat diakses";
 
@@ -27,10 +29,20 @@ async function downloadContent(req, res) {
   }
 
   try {
-    const result =
-      sanitized.platform === "tiktok"
-        ? await downloadTikTok(sanitized.url)
-        : await downloadInstagram(sanitized.url);
+    let result;
+
+    if (sanitized.platform === "tiktok") {
+      result = await downloadTikTok(sanitized.url);
+    } else if (sanitized.platform === "instagram") {
+      result = await downloadInstagram(sanitized.url);
+    } else if (sanitized.platform === "youtube") {
+      result = await downloadYouTube(sanitized.url);
+    } else if (sanitized.platform === "x") {
+      result = await downloadX(sanitized.url);
+    } else {
+      res.status(400).json({ error: formatApiError() });
+      return;
+    }
 
     res.json(result);
   } catch (error) {

@@ -2,14 +2,10 @@ require("dotenv").config();
 
 const cors = require("cors");
 const express = require("express");
-const fs = require("fs");
-const os = require("os");
-const path = require("path");
 const downloadRoutes = require("./routes/download.routes");
-const { validateInstagramCookiesOnStartup } = require("./services/cookies.service");
+const { validateAllCookiesOnStartup } = require("./services/cookies.service");
+const { cleanupExpiredCache } = require("./services/media-cache.service");
 
-const DOWNLOAD_CACHE_DIR = path.join(os.tmpdir(), "void-dl-cache");
-const DOWNLOAD_CACHE_TTL_MS = 2 * 60 * 60 * 1000;
 const app = express();
 const port = Number(process.env.PORT || 3001);
 const frontendUrl =
@@ -18,23 +14,6 @@ const allowedOrigins = new Set(frontendUrl
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean));
-
-function cleanupDownloadCache() {
-  if (!fs.existsSync(DOWNLOAD_CACHE_DIR)) {
-    return;
-  }
-
-  const now = Date.now();
-
-  fs.readdirSync(DOWNLOAD_CACHE_DIR).forEach((fileName) => {
-    const filePath = path.join(DOWNLOAD_CACHE_DIR, fileName);
-    const stats = fs.statSync(filePath);
-
-    if (stats.isFile() && now - stats.mtimeMs > DOWNLOAD_CACHE_TTL_MS) {
-      fs.rmSync(filePath, { force: true });
-    }
-  });
-}
 
 app.use(
   cors({
@@ -65,8 +44,8 @@ app.use((error, req, res, next) => {
 });
 
 if (require.main === module) {
-  validateInstagramCookiesOnStartup();
-  cleanupDownloadCache();
+  validateAllCookiesOnStartup();
+  cleanupExpiredCache();
   const server = app.listen(port);
   server.timeout = 300000;
 }

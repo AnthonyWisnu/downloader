@@ -2,9 +2,9 @@ const crypto = require("crypto");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { execFile } = require("child_process");
 const { validateInstagramCookies } = require("../services/cookies.service");
 const { sanitizeUrl } = require("../utils/sanitizeUrl");
+const { runYtDlp } = require("../utils/execTool");
 
 const CACHE_DIR = path.join(os.tmpdir(), "void-preview-cache");
 const PREVIEW_FORMAT =
@@ -19,20 +19,6 @@ function ensureCacheDir() {
 function getCachePath(url) {
   const hash = crypto.createHash("sha256").update(url).digest("hex").slice(0, 32);
   return path.join(CACHE_DIR, `${hash}.mp4`);
-}
-
-function runYtDlp(args) {
-  return new Promise((resolve, reject) => {
-    execFile("yt-dlp", args, { maxBuffer: 1024 * 1024 * 4 }, (error, stdout, stderr) => {
-      if (error) {
-        error.stderr = stderr;
-        reject(error);
-        return;
-      }
-
-      resolve(stdout);
-    });
-  });
 }
 
 async function ensurePreviewFile(url) {

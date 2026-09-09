@@ -1,4 +1,4 @@
-import { Clapperboard, Film, Images, Music2, Radio } from "lucide-react";
+import { Clapperboard, Film, Images, Music2, Radio, Twitter, Video } from "lucide-react";
 
 const platforms = [
   {
@@ -30,6 +30,18 @@ const platforms = [
     name: "Instagram Story",
     description: "Download Story Instagram yang sedang aktif.",
     color: "card-orange"
+  },
+  {
+    icon: Video,
+    name: "YouTube Video & Shorts",
+    description: "Download video YouTube dan Shorts beserta audio MP3.",
+    color: "card-red"
+  },
+  {
+    icon: Twitter,
+    name: "X (Twitter)",
+    description: "Download video, GIF, audio, dan foto dari postingan X.",
+    color: "card-yellow"
   }
 ];
 

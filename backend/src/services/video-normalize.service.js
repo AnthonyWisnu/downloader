@@ -1,20 +1,4 @@
-const { execFile } = require("child_process");
-
-function runTool(command, args, missingMessage) {
-  return new Promise((resolve, reject) => {
-    execFile(command, args, { maxBuffer: 1024 * 1024 * 8 }, (error, stdout, stderr) => {
-      if (error) {
-        const message = error.code === "ENOENT"
-          ? missingMessage
-          : `${command} gagal: ${String(stderr || error.message).slice(0, 500)}`;
-        reject(new Error(message));
-        return;
-      }
-
-      resolve(stdout);
-    });
-  });
-}
+const { runFfmpeg, runFfprobe } = require("../utils/execTool");
 
 function getVideoStream(metadata) {
   return (metadata.streams || []).find((stream) => stream.codec_type === "video") || null;
@@ -25,7 +9,7 @@ function getAudioStream(metadata) {
 }
 
 async function getVideoMetadata(inputPath) {
-  const output = await runTool("ffprobe", [
+  const output = await runFfprobe([
     "-v",
     "error",
     "-print_format",
@@ -33,7 +17,7 @@ async function getVideoMetadata(inputPath) {
     "-show_streams",
     "-show_format",
     inputPath
-  ], "ffprobe belum terinstall");
+  ]);
 
   let parsed;
 
@@ -82,7 +66,7 @@ function isIosSafeVideo(metadata) {
 }
 
 async function remuxFaststart(inputPath, outputPath) {
-  await runTool("ffmpeg", [
+  await runFfmpeg([
     "-y",
     "-i",
     inputPath,
@@ -91,11 +75,11 @@ async function remuxFaststart(inputPath, outputPath) {
     "-movflags",
     "+faststart",
     outputPath
-  ], "ffmpeg belum terinstall");
+  ]);
 }
 
 async function transcodeIosSafe(inputPath, outputPath) {
-  await runTool("ffmpeg", [
+  await runFfmpeg([
     "-y",
     "-i",
     inputPath,
@@ -122,7 +106,7 @@ async function transcodeIosSafe(inputPath, outputPath) {
     "-vf",
     "scale=trunc(iw/2)*2:trunc(ih/2)*2",
     outputPath
-  ], "ffmpeg belum terinstall");
+  ]);
 }
 
 async function normalizeVideoForAllDevices(inputPath, outputPath) {

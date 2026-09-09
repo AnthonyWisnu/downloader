@@ -1,30 +1,15 @@
-const { execFile } = require("child_process");
 const fs = require("fs");
 const { instagramGetUrl } = require("instagram-url-direct");
 const path = require("path");
 const { getOrCreateMp3FromUrl } = require("./audio-cache.service");
 const { validateInstagramCookies } = require("./cookies.service");
 const { getOrCreateNormalizedVideo } = require("./video-cache.service");
+const { runYtDlp } = require("../utils/execTool");
 
 const PRIMARY_MERGE_FORMAT =
   "bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a]/best[ext=mp4][vcodec^=avc1]/best[ext=mp4]/best";
 const FALLBACK_MERGE_FORMAT = "bestvideo+bestaudio/best";
 const OUTPUT_EXTENSIONS = ["mp4", "mkv", "webm"];
-
-function runYtDlp(args) {
-  return new Promise((resolve, reject) => {
-    execFile("yt-dlp", args, { maxBuffer: 1024 * 1024 * 16 }, (error, stdout, stderr) => {
-      if (error) {
-        error.stderr = stderr;
-        error.stdout = stdout;
-        reject(error);
-        return;
-      }
-
-      resolve(stdout);
-    });
-  });
-}
 
 function createInstagramError(message, statusCode = 502) {
   const error = new Error(message);

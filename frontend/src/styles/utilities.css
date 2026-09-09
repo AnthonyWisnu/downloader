@@ -93,6 +93,11 @@
   color: var(--white);
 }
 
+.badge-red {
+  background: var(--red);
+  color: var(--white);
+}
+
 /* Card --------------------------------------------------------------------- */
 .card {
   border: var(--border-thick);
