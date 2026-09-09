@@ -3,51 +3,51 @@ import { Minus, Plus } from "lucide-react";
 
 const faqs = [
   {
-    question: "Apakah VOID gratis?",
+    question: "Which platforms are supported by VOID?",
     answer:
-      "Ya, VOID sepenuhnya gratis. Tidak ada biaya, tidak ada login, tidak ada batas download."
+      "VOID natively supports YouTube (Videos, Shorts, and Audio extraction), TikTok (Watermark-free videos and photo carousels), Instagram (Reels, multi-image posts, and active stories), and X / Twitter (Videos, GIFs, original photos, and audio)."
   },
   {
-    question: "Platform apa saja yang didukung?",
+    question: "Does VOID require accounts, authentication, or extensions?",
     answer:
-      "Saat ini VOID mendukung TikTok (video dan slideshow) dan Instagram (Reels, Post, Story)."
+      "No. VOID is completely clientless and requires no user account, registration, payment, or browser extension."
   },
   {
-    question: "Kenapa beberapa audio tidak tersedia?",
+    question: "How does VOID handle cookies and sensitive extractions?",
     answer:
-      "Beberapa video TikTok menggunakan audio yang dilindungi hak cipta. Jika audio tidak tersedia, hanya video tanpa suara yang bisa didownload."
+      "Session cookies for platforms like Instagram and YouTube are maintained entirely server-side in secure Netscape format. No credentials or authentication tokens are ever sent to client browsers."
   },
   {
-    question: "Kenapa Instagram butuh proses lebih lama?",
+    question: "Why do some videos offer audio extraction separately?",
     answer:
-      "Konten Instagram diproses melalui backend menggunakan autentikasi yang aman. Proses ini sedikit lebih lama tapi lebih andal."
+      "For platforms like YouTube and X, the extractor provides a direct MP3 stream alongside video containers, allowing you to download clean audio tracks independently."
   },
   {
-    question: "Apakah link yang saya masukkan disimpan?",
+    question: "Why might extraction fail on certain links?",
     answer:
-      "Tidak. Link hanya digunakan untuk mengambil metadata dan media, lalu langsung dibuang."
+      "Private accounts, geo-blocked media, copyright-locked audio, or expired ephemeral posts (such as 24-hour stories that expired) cannot be accessed by public scrapers."
   },
   {
-    question: "Kenapa video tertentu gagal diunduh?",
+    question: "Are submitted URLs logged or permanently archived?",
     answer:
-      "Beberapa konten private, konten yang sudah dihapus, atau konten dengan pembatasan platform tidak bisa diambil."
+      "No. Incoming URLs are sanitized in memory, dispatched to the extraction pipeline, and discarded. Temporary cached files are automatically pruned by background cache cleanup."
   }
 ];
 
 function FaqItem({ faq, isOpen, onToggle }) {
   return (
-    <div className={isOpen ? "faq-item is-open" : "faq-item"}>
+    <div className={`faq-item ${isOpen ? "is-open" : ""}`}>
       <button
-        className="faq-question"
+        className="faq-question mono"
         type="button"
         aria-expanded={isOpen}
         onClick={onToggle}
       >
         <span>{faq.question}</span>
         {isOpen ? (
-          <Minus size={20} strokeWidth={2.5} aria-hidden="true" />
+          <Minus size={16} strokeWidth={2.5} aria-hidden="true" />
         ) : (
-          <Plus size={20} strokeWidth={2.5} aria-hidden="true" />
+          <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
         )}
       </button>
 
@@ -64,9 +64,12 @@ function FAQSection() {
   }
 
   return (
-    <section className="section bg-ink" aria-label="Pertanyaan umum">
+    <section className="section bg-black" aria-label="Frequently Asked Questions">
       <div className="section-inner faq-inner">
-        <span className="section-label faq-label">FAQ</span>
+        <div className="faq-header-bar mono">
+          <span className="section-tag">[07] FREQUENT INQUIRIES</span>
+          <span className="faq-header-status">TECHNICAL REFERENCE</span>
+        </div>
 
         <div className="faq-list">
           {faqs.map((faq, index) => (

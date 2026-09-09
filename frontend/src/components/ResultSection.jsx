@@ -1,5 +1,4 @@
-import { RotateCcw } from "lucide-react";
-import ResultCard from "./ResultCard";
+import MediaResult from "./MediaResult";
 
 function ResultSection({ result, onReset }) {
   if (!result) {
@@ -7,22 +6,14 @@ function ResultSection({ result, onReset }) {
   }
 
   return (
-    <section className="result section bg-off-white" aria-label="Hasil download">
-      <div className="result-inner section-inner">
-        <div className="result-topbar">
-          <span className="section-label">HASIL GRAB</span>
-
-          <button
-            className="result-reset btn btn-yellow"
-            type="button"
-            onClick={onReset}
-          >
-            <RotateCcw size={18} strokeWidth={2.5} aria-hidden="true" />
-            Grab Lagi
-          </button>
+    <section className="result-section section bg-black" aria-label="Hasil Ekstraksi Media">
+      <div className="section-inner result-inner">
+        <div className="result-tag-bar mono">
+          <span className="section-tag">[04] EXTRACTION RESULT</span>
+          <span className="result-sys-status">UNIVERSAL MEDIA DISPATCHER</span>
         </div>
 
-        <ResultCard result={result} />
+        <MediaResult result={result} onReset={onReset} />
       </div>
     </section>
   );

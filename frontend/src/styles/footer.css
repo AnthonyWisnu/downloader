@@ -1,42 +1,69 @@
 /* ==========================================================================
-   VOID Design System - Footer & Global Responsive Overrides
+   VOID Design System - Footer & Responsive (VOID Brutalist 2.0)
+   Monochrome, security statement, status indicator, sharp boundaries.
    ========================================================================== */
 
 .footer {
   padding: var(--space-xl) var(--space-md) var(--space-lg);
-  border-top: 6px solid var(--yellow);
+  border-top: var(--border-thick);
+  background-color: var(--bg);
 }
 
 .footer-inner {
   display: flex;
   flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.footer-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: var(--space-md);
 }
 
 .footer-brand {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .footer-logo {
-  font-size: clamp(2.5rem, 8vw, 4rem);
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
   line-height: 1;
-  color: var(--yellow);
 }
 
 .footer-tagline {
-  font-size: var(--text-small);
-  font-weight: 500;
-  color: var(--off-white);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  color: var(--text-muted);
 }
 
-.footer-disclaimer {
-  max-width: 620px;
+.footer-security-note {
+  border: var(--border);
+  background-color: var(--surface-card);
+  padding: 14px 18px;
+  max-width: 480px;
+}
+
+.footer-security-badge {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: var(--tracking-mono);
+  margin-bottom: 6px;
+}
+
+.footer-security-text {
   font-size: var(--text-small);
-  color: var(--off-white);
-  opacity: 0.7;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
 .footer-meta {
@@ -44,73 +71,47 @@
   flex-wrap: wrap;
   gap: var(--space-md);
   align-items: center;
-  padding-top: var(--space-sm);
+  justify-content: space-between;
+  padding-top: var(--space-md);
   border-top: var(--border);
   font-size: var(--text-label);
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--tracking-mono);
+  color: var(--text-muted);
 }
 
 .footer-status {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  color: var(--text-primary);
 }
 
-.footer-dot {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid var(--off-white);
-  border-radius: 50%;
+.footer-legal {
+  color: var(--text-muted);
 }
 
-.footer-dot.is-ok {
-  background: var(--lime);
+.footer-version {
+  color: var(--text-secondary);
 }
 
-.footer-dot.is-error {
-  background: var(--pink);
-}
-
-/* Responsive: mobile ----------------------------------------------------- */
-@media (max-width: 767px) {
+/* Global Responsive Adjustments ------------------------------------------- */
+@media (max-width: 768px) {
   .section {
     padding: var(--space-lg) var(--space-md);
   }
 
-  .media-video,
-  .slideshow-image {
-    max-height: 280px;
-  }
-
-  .platform-inner,
-  .feature-grid-inner,
-  .howto-inner,
-  .faq-inner {
-    gap: var(--space-md);
-  }
-
-  .result-topbar {
+  .footer-top {
     flex-direction: column;
-    align-items: stretch;
   }
 
-  .result-reset {
-    justify-content: center;
-  }
-
-  .download-row {
+  .footer-meta {
     flex-direction: column;
-    align-items: stretch;
-  }
-
-  .download-action {
-    justify-content: center;
+    align-items: flex-start;
+    gap: 12px;
   }
 }
 
-/* Hormati preferensi reduce motion -------------------------------------- */
+/* Reduced Motion ---------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

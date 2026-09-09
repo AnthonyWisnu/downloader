@@ -1,29 +1,29 @@
 const steps = [
   {
     number: "01",
-    title: "Salin Link",
-    text: "Buka TikTok atau Instagram. Salin URL video, Reels, post, atau Story."
+    title: "COPY MEDIA URL",
+    text: "Copy the public URL of any video, reel, post, or tweet from YouTube, TikTok, Instagram, or X."
   },
   {
     number: "02",
-    title: "Tempel ke VOID",
-    text: "Kembali ke VOID. Tempel URL ke input lalu klik tombol GRAB."
+    title: "ANALYZE SOURCE",
+    text: "Paste the URL into the input field above and click ANALYZE. The engine detects the platform automatically."
   },
   {
     number: "03",
-    title: "Preview dan Download",
-    text: "Cek preview media, lalu klik tombol download untuk menyimpan file."
+    title: "STREAM & DOWNLOAD",
+    text: "Inspect the direct preview stream, select your preferred resolution or audio format, and download."
   }
 ];
 
 function HowToStep({ step }) {
   return (
-    <article className="howto-step">
+    <article className="howto-step card">
       <span className="howto-number mono" aria-hidden="true">
         {step.number}
       </span>
       <div className="howto-step-body">
-        <h3 className="howto-step-title">{step.title}</h3>
+        <h3 className="howto-step-title mono">{step.title}</h3>
         <p className="howto-step-text">{step.text}</p>
       </div>
     </article>
@@ -32,9 +32,12 @@ function HowToStep({ step }) {
 
 function HowToSection() {
   return (
-    <section className="section bg-off-white" aria-label="Cara pakai VOID">
+    <section id="how-to" className="section bg-black" aria-label="Workflow VOID">
       <div className="section-inner howto-inner">
-        <span className="section-label">CARA PAKAI</span>
+        <div className="howto-header-bar mono">
+          <span className="section-tag">[05] EXECUTION PROTOCOL</span>
+          <span className="howto-header-status">3-STEP WORKFLOW</span>
+        </div>
 
         <div className="howto-grid">
           {steps.map((step) => (

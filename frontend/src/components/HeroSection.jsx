@@ -1,48 +1,43 @@
-import { ChevronDown } from "lucide-react";
-
-const platformBadges = [
-  { label: "TikTok", className: "badge-yellow" },
-  { label: "Instagram", className: "badge-cyan" },
-  { label: "Reels", className: "badge-pink" },
-  { label: "Story", className: "badge-lime" },
-  { label: "Slideshow", className: "badge-orange" }
-];
-
-const stats = ["2 Platform", "No Watermark", "No Login"];
-
 function HeroSection() {
+  const platforms = [
+    { code: "YT", label: "YouTube" },
+    { code: "TT", label: "TikTok" },
+    { code: "IG", label: "Instagram" },
+    { code: "X", label: "X / Twitter" }
+  ];
+
   return (
-    <section className="hero" aria-label="VOID downloader">
-      <div className="hero-pattern" aria-hidden="true" />
-
+    <section className="hero grid-bg" aria-label="VOID Downloader">
       <div className="hero-inner section-inner">
-        <span className="hero-tag">[ FREE TOOL ]</span>
+        <div className="hero-meta-bar mono">
+          <span className="hero-meta-title">UNIVERSAL MEDIA DOWNLOADER</span>
+          <span className="hero-meta-index">[01]</span>
+        </div>
 
-        <h1 className="hero-title">VOID</h1>
+        <div className="hero-brand-block">
+          <span className="hero-brand-name">VOID</span>
+          <h1 className="hero-headline">
+            DOWNLOAD
+            <br />
+            WITHOUT
+            <br />
+            THE NOISE.
+          </h1>
+        </div>
 
-        <p className="hero-subtitle">
-          Download TikTok dan Instagram tanpa ribet. No watermark. No login.
-        </p>
+        <div className="hero-divider" aria-hidden="true" />
 
-        <ul className="hero-badges" aria-label="Platform yang didukung">
-          {platformBadges.map((badge) => (
-            <li key={badge.label} className={`badge ${badge.className}`}>
-              {badge.label}
-            </li>
-          ))}
-        </ul>
-
-        <ul className="hero-stats" aria-label="Ringkasan">
-          {stats.map((stat) => (
-            <li key={stat} className="hero-stat mono">
-              {stat}
-            </li>
-          ))}
-        </ul>
-
-        <a className="hero-scroll" href="#downloader" aria-label="Scroll ke downloader">
-          <ChevronDown size={28} strokeWidth={2.5} />
-        </a>
+        <div className="hero-platforms-bar mono" aria-label="Platform yang didukung">
+          <span className="hero-platforms-label">SUPPORTED SOURCES:</span>
+          <ul className="hero-platforms-list">
+            {platforms.map((platform) => (
+              <li key={platform.code} className="hero-platform-item">
+                <span className="hero-platform-code">[{platform.code}]</span>
+                <span className="hero-platform-name">{platform.label}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   );

@@ -1,19 +1,38 @@
 /* ==========================================================================
-   VOID Design System - Informational Sections (Platform, Features, How-To, FAQ)
+   VOID Design System - Informational Sections (VOID Brutalist 2.0)
+   Platform Support Matrix, Architecture Features, Workflow, and FAQ.
    ========================================================================== */
 
-/* Shared section inner ---------------------------------------------------- */
+/* Shared Section Inners --------------------------------------------------- */
 .platform-inner,
 .feature-grid-inner,
 .howto-inner,
 .faq-inner {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
-  align-items: center;
+  gap: var(--space-md);
 }
 
-/* Platform Support -------------------------------------------------------- */
+.platform-header-bar,
+.feature-header-bar,
+.howto-header-bar,
+.faq-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  color: var(--text-muted);
+}
+
+.platform-header-status,
+.feature-header-status,
+.howto-header-status,
+.faq-header-status {
+  color: var(--text-muted);
+}
+
+/* Platform Support Matrix ------------------------------------------------- */
 .platform-grid {
   width: 100%;
 }
@@ -21,67 +40,63 @@
 .platform-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   padding: var(--space-md);
-  border: var(--border-thick);
-  box-shadow: var(--shadow-md);
-  color: var(--ink);
-  transition: var(--transition);
+  border: var(--border);
+  background-color: var(--surface-card);
+  transition: border-color var(--transition-fast);
 }
 
 .platform-card:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: var(--shadow-lg);
+  border-color: var(--text-primary);
 }
 
-.platform-card:active {
-  transform: translate(2px, 2px);
-  box-shadow: var(--shadow-sm);
-}
-
-.card-cyan {
-  background: var(--cyan);
-}
-
-.card-yellow {
-  background: var(--yellow);
-}
-
-.card-pink {
-  background: var(--pink);
-}
-
-.card-lime {
-  background: var(--lime);
-}
-
-.card-orange {
-  background: var(--orange);
-}
-
-.card-red {
-  background: var(--red);
-  color: var(--white);
+.platform-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .platform-card-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: var(--ink);
-  color: var(--off-white);
+  width: 36px;
+  height: 36px;
+  background-color: var(--surface-elevated);
   border: var(--border);
+  color: var(--text-primary);
+}
+
+.platform-card-tag {
+  font-size: var(--text-label);
+  color: var(--text-muted);
+  letter-spacing: var(--tracking-mono);
+}
+
+.platform-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.platform-card-meta {
+  font-size: 0.7rem;
+  letter-spacing: var(--tracking-mono);
+  color: var(--text-muted);
+  text-transform: uppercase;
 }
 
 .platform-card-title {
-  font-size: var(--text-h3);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .platform-card-text {
   font-size: var(--text-small);
-  font-weight: 500;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
 /* Feature Grid ------------------------------------------------------------ */
@@ -92,48 +107,41 @@
 .feature-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   padding: var(--space-md);
-  background: var(--ink);
-  color: var(--off-white);
-  border: var(--border-thick);
-  box-shadow: var(--shadow-md);
-  transition: var(--transition);
+  background-color: var(--surface-card);
+  border: var(--border);
+  transition: border-color var(--transition-fast);
 }
 
 .feature-card:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.feature-card:active {
-  transform: translate(2px, 2px);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--text-primary);
 }
 
 .feature-card-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
-  background: var(--yellow);
-  color: var(--ink);
+  width: 38px;
+  height: 38px;
+  background-color: var(--surface-elevated);
   border: var(--border);
+  color: var(--text-primary);
 }
 
 .feature-card-title {
-  font-size: var(--text-h3);
-  color: var(--white);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .feature-card-text {
   font-size: var(--text-small);
-  color: var(--off-white);
-  opacity: 0.85;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
-/* How To ------------------------------------------------------------------ */
+/* How To / Workflow ------------------------------------------------------- */
 .howto-grid {
   display: grid;
   gap: var(--space-md);
@@ -148,20 +156,24 @@
 
 .howto-step {
   display: flex;
-  gap: var(--space-sm);
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 12px;
   padding: var(--space-md);
-  background: var(--white);
-  border: var(--border-thick);
-  box-shadow: var(--shadow-md);
+  background-color: var(--surface-card);
+  border: var(--border);
+  transition: border-color var(--transition-fast);
+}
+
+.howto-step:hover {
+  border-color: var(--text-primary);
 }
 
 .howto-number {
-  font-size: clamp(2.5rem, 7vw, 3.5rem);
+  font-size: 2rem;
   font-weight: 800;
   line-height: 1;
-  color: var(--yellow);
-  -webkit-text-stroke: 2px var(--ink);
+  color: var(--text-primary);
+  letter-spacing: -0.04em;
 }
 
 .howto-step-body {
@@ -171,28 +183,22 @@
 }
 
 .howto-step-title {
-  font-size: var(--text-h3);
-  color: var(--ink);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .howto-step-text {
   font-size: var(--text-small);
-  color: var(--ink);
-  opacity: 0.8;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
-/* FAQ --------------------------------------------------------------------- */
-.faq-label {
-  background: var(--yellow);
-  color: var(--ink);
-}
-
+/* FAQ Accordion ----------------------------------------------------------- */
 .faq-list {
   width: 100%;
-  max-width: 760px;
   border: var(--border-thick);
-  background: var(--off-white);
-  box-shadow: var(--shadow-lg);
+  background-color: var(--surface-card);
 }
 
 .faq-item {
@@ -209,31 +215,30 @@
   justify-content: space-between;
   gap: var(--space-sm);
   width: 100%;
-  padding: 18px 20px;
+  padding: 16px 20px;
   background: transparent;
   border: none;
   text-align: left;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  color: var(--ink);
-  transition: background 0.15s ease;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
 }
 
 .faq-question:hover {
-  background: rgba(255, 216, 77, 0.35);
+  background-color: var(--surface-hover);
 }
 
 .faq-item.is-open .faq-question {
-  background: var(--yellow);
-}
-
-.faq-item.is-open .faq-question:hover {
-  background: var(--yellow);
+  background-color: var(--surface-elevated);
+  border-bottom: var(--border);
 }
 
 .faq-answer {
-  padding: 0 20px 18px;
+  padding: 16px 20px;
   font-size: var(--text-small);
-  color: var(--ink);
-  opacity: 0.85;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  background-color: var(--surface-card);
 }

@@ -109,11 +109,13 @@ function normalizeDownload(download, index) {
   const label = download?.label || `Download ${index + 1}`;
   const format = download?.format || "file";
   const url = download?.url || "";
+  const size = download?.size || null;
 
   return {
     label,
     format,
-    url
+    url,
+    size
   };
 }
 
@@ -126,9 +128,11 @@ function normalizeResult(result) {
     platform: result?.platform || "unknown",
     type: result?.type || "video",
     title: result?.title || "Untitled content",
+    author: result?.author || "",
     thumbnail: result?.thumbnail || "",
     sourceUrl: result?.sourceUrl || "",
     previewUrl: result?.previewUrl || "",
+    audioStatus: result?.audioStatus || null,
     downloads
   };
 }

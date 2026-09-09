@@ -1,4 +1,12 @@
+import { ArrowUpRight, Clipboard, CornerDownLeft } from "lucide-react";
 import { platformLabel } from "../utils/detectPlatform";
+
+const PLATFORMS = [
+  { id: "youtube", tag: "YT", label: "YouTube" },
+  { id: "tiktok", tag: "TT", label: "TikTok" },
+  { id: "instagram", tag: "IG", label: "Instagram" },
+  { id: "x", tag: "X", label: "X / Twitter" }
+];
 
 function UrlInput({
   value,
@@ -10,56 +18,110 @@ function UrlInput({
   onSubmit
 }) {
   const hasError = Boolean(error);
-  const hasPlatform = detectedPlatform && detectedPlatform !== "unknown";
-  const statusBadgeClass =
-    detectedPlatform === "tiktok"
-      ? "badge-cyan"
-      : detectedPlatform === "instagram"
-        ? "badge-pink"
-        : detectedPlatform === "youtube"
-          ? "badge-red"
-          : "badge-yellow";
+  const detected = detectedPlatform && detectedPlatform !== "unknown";
+
+  async function handlePaste() {
+    try {
+      if (navigator?.clipboard?.readText) {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          onChange(text.trim());
+        }
+      }
+    } catch {
+      // Clipboard permission denied or unsupported
+    }
+  }
+
+  function handleKeyDown(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      if (canSubmit && !isLoading) {
+        onSubmit(event);
+      }
+    }
+  }
 
   return (
-    <form className="url-form" onSubmit={onSubmit}>
-      <label className="sr-only" htmlFor="url-input">
-        URL TikTok, Instagram, YouTube, atau X (Twitter)
-      </label>
+    <form className="url-form" onSubmit={onSubmit} noValidate>
+      <div className="url-form-header mono">
+        <label htmlFor="url-input" className="url-input-label">
+          INPUT SOURCE_
+        </label>
+        {navigator?.clipboard?.readText ? (
+          <button
+            type="button"
+            className="url-paste-btn"
+            onClick={handlePaste}
+            disabled={isLoading}
+            title="Paste dari clipboard"
+            aria-label="Paste dari clipboard"
+          >
+            <Clipboard size={14} strokeWidth={2.5} aria-hidden="true" />
+            <span>PASTE</span>
+          </button>
+        ) : null}
+      </div>
 
-      <input
-        id="url-input"
-        className={hasError ? "url-field has-error" : "url-field"}
-        type="url"
-        value={value}
-        placeholder="Tempel link TikTok, Instagram, YouTube, atau X (Twitter) di sini..."
-        autoComplete="off"
-        spellCheck="false"
-        aria-invalid={hasError}
-        disabled={isLoading}
-        onChange={(event) => onChange(event.target.value)}
-      />
+      <div className={`url-input-wrapper ${hasError ? "has-error" : ""}`}>
+        <input
+          id="url-input"
+          className="url-field mono"
+          type="url"
+          value={value}
+          placeholder="PASTE URL HERE (YOUTUBE, TIKTOK, INSTAGRAM, X)..."
+          autoComplete="off"
+          spellCheck="false"
+          aria-invalid={hasError}
+          disabled={isLoading}
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={handleKeyDown}
+        />
 
-      <p className="url-microcopy mono">
-        Mendukung TikTok video, Instagram Reels/Post/Story, YouTube, dan X (Twitter) media
-      </p>
+        <button
+          className="url-submit-btn mono"
+          type="submit"
+          disabled={!canSubmit || isLoading}
+          aria-label="Analisis URL media"
+        >
+          {isLoading ? (
+            <span>ANALYZING...</span>
+          ) : (
+            <>
+              <span>ANALYZE</span>
+              <ArrowUpRight size={16} strokeWidth={2.5} aria-hidden="true" />
+            </>
+          )}
+        </button>
+      </div>
 
-      <button
-        className="url-grab btn btn-block"
-        type="submit"
-        disabled={!canSubmit}
-        aria-label="Grab konten"
-      >
-        {isLoading ? "GRABBING..." : "GRAB"}
-      </button>
+      <div className="url-footer mono">
+        <div className="url-platforms-row" aria-label="Platform terdeteksi">
+          <span className="url-platforms-prefix">SUPPORTED:</span>
+          <div className="url-platform-chips">
+            {PLATFORMS.map((p) => {
+              const isCurrent = detected && detectedPlatform === p.id;
+              return (
+                <span
+                  key={p.id}
+                  className={`url-platform-chip ${isCurrent ? "is-active" : ""}`}
+                >
+                  [{p.tag}]
+                </span>
+              );
+            })}
+          </div>
+        </div>
 
-      <div className="url-status mono" aria-live="polite">
-        {hasPlatform ? (
-          <span className={`badge ${statusBadgeClass}`}>
-            PLATFORM: {platformLabel(detectedPlatform)}
-          </span>
-        ) : (
-          <span className="url-status-empty">INPUT: KOSONG</span>
-        )}
+        <div className="url-state-indicator" aria-live="polite">
+          {detected ? (
+            <span className="url-detected-label">
+              DETECTED: {platformLabel(detectedPlatform)}
+            </span>
+          ) : (
+            <span className="url-idle-label">AWAITING SOURCE_</span>
+          )}
+        </div>
       </div>
     </form>
   );

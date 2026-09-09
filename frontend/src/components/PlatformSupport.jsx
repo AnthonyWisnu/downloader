@@ -2,46 +2,32 @@ import { Clapperboard, Film, Images, Music2, Radio, Twitter, Video } from "lucid
 
 const platforms = [
   {
-    icon: Music2,
-    name: "TikTok Video",
-    description: "Download video TikTok tanpa watermark.",
-    color: "card-cyan"
+    icon: Video,
+    tag: "YT",
+    name: "YouTube",
+    scope: "VIDEO & AUDIO",
+    description: "Download high-resolution video (MP4) and extracted audio (MP3)."
   },
   {
-    icon: Images,
-    name: "TikTok Slideshow",
-    description: "Download kumpulan foto dari postingan slideshow TikTok.",
-    color: "card-yellow"
+    icon: Music2,
+    tag: "TT",
+    name: "TikTok",
+    scope: "VIDEO & SLIDESHOW",
+    description: "Download video without watermark and full photo slideshow carousels."
   },
   {
     icon: Film,
-    name: "Instagram Reels",
-    description: "Download Reels langsung dari link Instagram.",
-    color: "card-pink"
-  },
-  {
-    icon: Clapperboard,
-    name: "Instagram Post",
-    description: "Download foto atau video dari postingan Instagram.",
-    color: "card-lime"
-  },
-  {
-    icon: Radio,
-    name: "Instagram Story",
-    description: "Download Story Instagram yang sedang aktif.",
-    color: "card-orange"
-  },
-  {
-    icon: Video,
-    name: "YouTube Video & Shorts",
-    description: "Download video YouTube dan Shorts beserta audio MP3.",
-    color: "card-red"
+    tag: "IG",
+    name: "Instagram",
+    scope: "REELS, POST, STORY",
+    description: "Extract Reels, multi-image posts, and active public Stories."
   },
   {
     icon: Twitter,
+    tag: "X",
     name: "X (Twitter)",
-    description: "Download video, GIF, audio, dan foto dari postingan X.",
-    color: "card-yellow"
+    scope: "VIDEO, GIF, PHOTOS",
+    description: "Download native video streams, animated GIFs, and high-res photos."
   }
 ];
 
@@ -49,25 +35,37 @@ function PlatformCard({ platform }) {
   const Icon = platform.icon;
 
   return (
-    <article className={`platform-card card-hover ${platform.color}`}>
-      <div className="platform-card-icon" aria-hidden="true">
-        <Icon size={28} strokeWidth={2.5} />
+    <article className="platform-card card card-hover">
+      <div className="platform-card-header">
+        <div className="platform-card-icon" aria-hidden="true">
+          <Icon size={20} strokeWidth={2.2} />
+        </div>
+        <span className="platform-card-tag mono">[{platform.tag}]</span>
       </div>
-      <h3 className="platform-card-title">{platform.name}</h3>
-      <p className="platform-card-text">{platform.description}</p>
+
+      <div className="platform-card-body">
+        <div className="platform-card-meta mono">
+          <span className="platform-card-scope">{platform.scope}</span>
+        </div>
+        <h3 className="platform-card-title">{platform.name}</h3>
+        <p className="platform-card-text">{platform.description}</p>
+      </div>
     </article>
   );
 }
 
 function PlatformSupport() {
   return (
-    <section className="section bg-off-white" aria-label="Platform yang didukung">
+    <section className="section bg-black" aria-label="Platform yang didukung">
       <div className="section-inner platform-inner">
-        <span className="section-label">PLATFORM YANG DIDUKUNG</span>
+        <div className="platform-header-bar mono">
+          <span className="section-tag">[03] SUPPORT MATRIX</span>
+          <span className="platform-header-status">ALL PROTOCOLS OPERATIONAL</span>
+        </div>
 
-        <div className="grid grid-2 grid-3 platform-grid">
+        <div className="grid grid-2 platform-grid">
           {platforms.map((platform) => (
-            <PlatformCard key={platform.name} platform={platform} />
+            <PlatformCard key={platform.tag} platform={platform} />
           ))}
         </div>
       </div>

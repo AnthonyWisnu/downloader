@@ -1,3 +1,4 @@
+import Navbar from "./components/Navbar";
 import DownloaderPanel from "./components/DownloaderPanel";
 import FAQSection from "./components/FAQSection";
 import FeatureGrid from "./components/FeatureGrid";
@@ -12,7 +13,8 @@ function App() {
   const downloader = useDownloader();
 
   return (
-    <main className="app">
+    <div className="app">
+      <Navbar healthStatus={downloader.healthStatus} />
       <HeroSection />
 
       <DownloaderPanel
@@ -38,7 +40,7 @@ function App() {
       <FAQSection />
 
       <Footer healthStatus={downloader.healthStatus} />
-    </main>
+    </div>
   );
 }
 
