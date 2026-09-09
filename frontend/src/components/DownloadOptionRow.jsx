@@ -1,13 +1,16 @@
-import { ArrowUpRight, Download } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 function DownloadOptionRow({ item }) {
   if (!item || !item.directUrl) {
     return null;
   }
 
+  const categoryClass = `category-${item.category}`;
+
   return (
-    <div className="download-option-row mono">
+    <div className={`download-option-row ${categoryClass} mono`}>
       <div className="download-row-specs">
+        <span className="download-row-badge">{item.category.toUpperCase()}</span>
         <span className="download-row-quality">{item.quality}</span>
         <span className="download-row-format">{item.format}</span>
         {item.size ? <span className="download-row-size">{item.size}</span> : null}

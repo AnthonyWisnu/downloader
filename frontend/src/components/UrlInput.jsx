@@ -1,11 +1,12 @@
-import { ArrowUpRight, Clipboard, CornerDownLeft } from "lucide-react";
+import { ArrowUpRight, Clipboard } from "lucide-react";
+import { YouTubeLogo, TikTokLogo, InstagramLogo, XLogo } from "./BrandLogos";
 import { platformLabel } from "../utils/detectPlatform";
 
 const PLATFORMS = [
-  { id: "youtube", tag: "YT", label: "YouTube" },
-  { id: "tiktok", tag: "TT", label: "TikTok" },
-  { id: "instagram", tag: "IG", label: "Instagram" },
-  { id: "x", tag: "X", label: "X / Twitter" }
+  { id: "youtube", label: "YouTube", renderLogo: (size) => <YouTubeLogo size={size} /> },
+  { id: "tiktok", label: "TikTok", renderLogo: (size) => <TikTokLogo size={size} /> },
+  { id: "instagram", label: "Instagram", renderLogo: (size) => <InstagramLogo size={size} /> },
+  { id: "x", label: "X (Twitter)", renderLogo: (size) => <XLogo size={size} /> }
 ];
 
 function UrlInput({
@@ -46,7 +47,7 @@ function UrlInput({
     <form className="url-form" onSubmit={onSubmit} noValidate>
       <div className="url-form-header mono">
         <label htmlFor="url-input" className="url-input-label">
-          INPUT SOURCE_
+          SOURCE STREAM URL_
         </label>
         {navigator?.clipboard?.readText ? (
           <button
@@ -58,18 +59,18 @@ function UrlInput({
             aria-label="Paste dari clipboard"
           >
             <Clipboard size={14} strokeWidth={2.5} aria-hidden="true" />
-            <span>PASTE</span>
+            <span>PASTE LINK</span>
           </button>
         ) : null}
       </div>
 
-      <div className={`url-input-wrapper ${hasError ? "has-error" : ""}`}>
+      <div className={`url-input-wrapper ${hasError ? "has-error" : ""} ${detected ? `detected-${detectedPlatform}` : ""}`}>
         <input
           id="url-input"
           className="url-field mono"
           type="url"
           value={value}
-          placeholder="PASTE URL HERE (YOUTUBE, TIKTOK, INSTAGRAM, X)..."
+          placeholder="PASTE LINK (YOUTUBE, TIKTOK, INSTAGRAM, X)..."
           autoComplete="off"
           spellCheck="false"
           aria-invalid={hasError}
@@ -85,10 +86,10 @@ function UrlInput({
           aria-label="Analisis URL media"
         >
           {isLoading ? (
-            <span>ANALYZING...</span>
+            <span className="url-btn-text">ANALYZING...</span>
           ) : (
             <>
-              <span>ANALYZE</span>
+              <span className="url-btn-text">ANALYZE</span>
               <ArrowUpRight size={16} strokeWidth={2.5} aria-hidden="true" />
             </>
           )}
@@ -97,17 +98,19 @@ function UrlInput({
 
       <div className="url-footer mono">
         <div className="url-platforms-row" aria-label="Platform terdeteksi">
-          <span className="url-platforms-prefix">SUPPORTED:</span>
+          <span className="url-platforms-prefix">PLATFORMS:</span>
           <div className="url-platform-chips">
             {PLATFORMS.map((p) => {
               const isCurrent = detected && detectedPlatform === p.id;
               return (
-                <span
+                <div
                   key={p.id}
-                  className={`url-platform-chip ${isCurrent ? "is-active" : ""}`}
+                  className={`url-platform-chip chip-${p.id} ${isCurrent ? "is-active" : ""}`}
+                  title={p.label}
                 >
-                  [{p.tag}]
-                </span>
+                  <span className="chip-logo">{p.renderLogo(16)}</span>
+                  <span className="chip-name">{p.label}</span>
+                </div>
               );
             })}
           </div>
@@ -116,10 +119,10 @@ function UrlInput({
         <div className="url-state-indicator" aria-live="polite">
           {detected ? (
             <span className="url-detected-label">
-              DETECTED: {platformLabel(detectedPlatform)}
+              READY: {platformLabel(detectedPlatform)}
             </span>
           ) : (
-            <span className="url-idle-label">AWAITING SOURCE_</span>
+            <span className="url-idle-label">WAITING FOR URL_</span>
           )}
         </div>
       </div>

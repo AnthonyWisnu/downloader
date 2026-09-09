@@ -1,16 +1,22 @@
 import { RotateCcw } from "lucide-react";
+import { PlatformLogo } from "./BrandLogos";
 
 function PlatformHeader({ adapted, onReset }) {
   return (
-    <div className="platform-header-container mono">
+    <div className={`platform-header-container platform-hdr-${adapted.platform} mono`}>
       <div className="platform-header-left">
-        <span className="platform-header-tag">[PAYLOAD DETECTED]</span>
+        <span className="platform-header-icon">
+          <PlatformLogo platform={adapted.platform} size={22} />
+        </span>
         <span className="platform-header-badge">{adapted.platformLabel}</span>
         <span className="platform-header-type">/ {adapted.typeLabel}</span>
       </div>
 
       <div className="platform-header-right">
-        <span className="platform-header-status">STATUS: PARSED OK</span>
+        <span className="platform-header-status">
+          <span className="platform-status-dot" />
+          EXTRACTED OK
+        </span>
         {onReset ? (
           <button
             type="button"

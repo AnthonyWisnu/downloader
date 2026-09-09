@@ -11,9 +11,13 @@ import useDownloader from "./hooks/useDownloader";
 
 function App() {
   const downloader = useDownloader();
+  const activePlatform =
+    downloader.detectedPlatform !== "unknown"
+      ? downloader.detectedPlatform
+      : downloader.result?.platform || "default";
 
   return (
-    <div className="app">
+    <div className="app" data-platform={activePlatform}>
       <Navbar healthStatus={downloader.healthStatus} />
       <HeroSection />
 

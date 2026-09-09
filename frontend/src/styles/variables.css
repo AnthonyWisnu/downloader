@@ -4,38 +4,63 @@
    ========================================================================== */
 
 :root {
-  /* Core Monochrome Palette */
-  --bg: #000000;
-  --surface-card: #09090b;
-  --surface-input: #050505;
-  --surface-elevated: #18181b;
-  --surface-hover: #27272a;
+  /* Core Dark Canvas & Surfaces */
+  --bg: #090a0f;
+  --surface-card: #11131c;
+  --surface-input: #0b0d14;
+  --surface-elevated: #181b27;
+  --surface-hover: #222636;
 
   --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+
+  /* Official Platform Brand Colors */
+  --brand-youtube: #ff0000;
+  --brand-youtube-glow: rgba(255, 0, 0, 0.28);
+  --brand-tiktok: #00f2fe;
+  --brand-tiktok-accent: #fe2c55;
+  --brand-tiktok-glow: rgba(0, 242, 254, 0.25);
+  --brand-instagram: #e1306c;
+  --brand-instagram-glow: rgba(225, 48, 108, 0.28);
+  --brand-instagram-gradient: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+  --brand-x: #1d9bf0;
+  --brand-x-glow: rgba(29, 155, 240, 0.25);
+
+  /* Media Category Accent Colors */
+  --media-video: #10b981;
+  --media-video-glow: rgba(16, 185, 129, 0.25);
+  --media-audio: #a855f7;
+  --media-audio-glow: rgba(168, 85, 247, 0.25);
+  --media-image: #f59e0b;
+  --media-image-glow: rgba(245, 158, 11, 0.25);
+
+  /* Default Reactive Accent (Idle: Electric Cyan) */
+  --platform-color: #00f2fe;
+  --platform-glow: rgba(0, 242, 254, 0.25);
+  --platform-border: #00f2fe;
 
   /* Accent & Status */
   --error: #ef4444;
-  --status-ok: #ffffff;
+  --status-ok: #10b981;
   --status-error: #ef4444;
 
-  /* Backward Compatibility Aliases (strictly mapped to monochrome) */
-  --ink: #000000;
+  /* Backward Compatibility Aliases */
+  --ink: #090a0f;
   --white: #ffffff;
-  --off-white: #e4e4e7;
-  --yellow: #ffffff;
-  --pink: #ef4444;
-  --purple: #18181b;
-  --cyan: #a1a1aa;
-  --lime: #ffffff;
-  --orange: #d4d4d8;
+  --off-white: #f1f5f9;
+  --yellow: #f59e0b;
+  --pink: #ec4899;
+  --purple: #8b5cf6;
+  --cyan: #06b6d4;
+  --lime: #10b981;
+  --orange: #f97316;
   --red: #ef4444;
 
   /* Borders */
-  --border-color: #3f3f46;
-  --border-color-light: #52525b;
-  --border-color-focus: #ffffff;
+  --border-color: #272a38;
+  --border-color-light: #3b4055;
+  --border-color-focus: var(--platform-color);
   --border: 1px solid var(--border-color);
   --border-thick: 2px solid var(--border-color);
   --border-focus: 3px solid var(--border-color-focus);
@@ -83,6 +108,31 @@
   --panel-width: 720px;
 
   /* Motion / Transitions */
-  --transition: all 0.1s ease;
-  --transition-fast: 80ms ease;
+  --transition: all 0.15s ease;
+  --transition-fast: 100ms ease;
+}
+
+/* Reactive Platform Colors (Option B: Adaptive Theme) */
+[data-platform="youtube"] {
+  --platform-color: var(--brand-youtube);
+  --platform-glow: var(--brand-youtube-glow);
+  --platform-border: var(--brand-youtube);
+}
+
+[data-platform="tiktok"] {
+  --platform-color: var(--brand-tiktok);
+  --platform-glow: var(--brand-tiktok-glow);
+  --platform-border: var(--brand-tiktok);
+}
+
+[data-platform="instagram"] {
+  --platform-color: var(--brand-instagram);
+  --platform-glow: var(--brand-instagram-glow);
+  --platform-border: var(--brand-instagram);
+}
+
+[data-platform="x"] {
+  --platform-color: var(--brand-x);
+  --platform-glow: var(--brand-x-glow);
+  --platform-border: var(--brand-x);
 }

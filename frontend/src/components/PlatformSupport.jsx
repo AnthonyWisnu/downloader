@@ -1,44 +1,50 @@
-import { Clapperboard, Film, Images, Music2, Radio, Twitter, Video } from "lucide-react";
+import { YouTubeLogo, TikTokLogo, InstagramLogo, XLogo } from "./BrandLogos";
 
 const platforms = [
   {
-    icon: Video,
-    tag: "YT",
+    id: "youtube",
+    tag: "YOUTUBE",
     name: "YouTube",
     scope: "VIDEO & AUDIO",
-    description: "Download high-resolution video (MP4) and extracted audio (MP3)."
+    colorClass: "card-youtube",
+    logo: <YouTubeLogo size={28} />,
+    description: "Download Full HD/4K videos, Shorts, and extracted 320kbps MP3 audio tracks."
   },
   {
-    icon: Music2,
-    tag: "TT",
+    id: "tiktok",
+    tag: "TIKTOK",
     name: "TikTok",
     scope: "VIDEO & SLIDESHOW",
-    description: "Download video without watermark and full photo slideshow carousels."
+    colorClass: "card-tiktok",
+    logo: <TikTokLogo size={28} />,
+    description: "Download crystal-clear watermark-free videos, slideshow photo carousels, and audio."
   },
   {
-    icon: Film,
-    tag: "IG",
+    id: "instagram",
+    tag: "INSTAGRAM",
     name: "Instagram",
     scope: "REELS, POST, STORY",
-    description: "Extract Reels, multi-image posts, and active public Stories."
+    colorClass: "card-instagram",
+    logo: <InstagramLogo size={28} />,
+    description: "Extract high-resolution Reels, multi-image post carousels, and active public Stories."
   },
   {
-    icon: Twitter,
-    tag: "X",
+    id: "x",
+    tag: "X (TWITTER)",
     name: "X (Twitter)",
     scope: "VIDEO, GIF, PHOTOS",
-    description: "Download native video streams, animated GIFs, and high-res photos."
+    colorClass: "card-x",
+    logo: <XLogo size={28} />,
+    description: "Download high-definition video clips, looping GIFs, and original high-res photos."
   }
 ];
 
 function PlatformCard({ platform }) {
-  const Icon = platform.icon;
-
   return (
-    <article className="platform-card card card-hover">
+    <article className={`platform-card card ${platform.colorClass}`}>
       <div className="platform-card-header">
-        <div className="platform-card-icon" aria-hidden="true">
-          <Icon size={20} strokeWidth={2.2} />
+        <div className="platform-card-logo-wrap">
+          {platform.logo}
         </div>
         <span className="platform-card-tag mono">[{platform.tag}]</span>
       </div>
@@ -60,12 +66,12 @@ function PlatformSupport() {
       <div className="section-inner platform-inner">
         <div className="platform-header-bar mono">
           <span className="section-tag">[03] SUPPORT MATRIX</span>
-          <span className="platform-header-status">ALL PROTOCOLS OPERATIONAL</span>
+          <span className="platform-header-status">OFFICIAL PROTOCOLS ACTIVE</span>
         </div>
 
         <div className="grid grid-2 platform-grid">
           {platforms.map((platform) => (
-            <PlatformCard key={platform.tag} platform={platform} />
+            <PlatformCard key={platform.id} platform={platform} />
           ))}
         </div>
       </div>

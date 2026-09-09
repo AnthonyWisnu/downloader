@@ -1,12 +1,12 @@
 /* ==========================================================================
-   VOID Design System - Downloader Section & Input (VOID Brutalist 2.0)
-   High contrast #050505 input surface, 3px focus state, technical loading bar.
+   VOID Design System - Downloader Section & Input (Vibrant Reactive Identity)
    ========================================================================== */
 
 .downloader-section {
   background-color: var(--bg);
-  border-bottom: var(--border);
+  border-bottom: 1px solid var(--border-color);
   padding: var(--space-xl) var(--space-md);
+  position: relative;
 }
 
 .downloader-inner {
@@ -31,8 +31,23 @@
 .downloader-panel {
   width: 100%;
   background-color: var(--surface-card);
-  border: var(--border-thick);
+  border: 1px solid var(--border-color);
   padding: var(--space-lg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.downloader-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--platform-color);
+  box-shadow: 0 0 12px var(--platform-glow);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* URL Form ---------------------------------------------------------------- */
@@ -52,42 +67,67 @@
   font-size: var(--text-label);
   font-weight: 700;
   letter-spacing: var(--tracking-mono);
-  color: var(--text-secondary);
+  color: var(--platform-color);
 }
 
 .url-paste-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: transparent;
-  border: var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  padding: 4px 10px;
+  padding: 5px 12px;
   font-size: var(--text-label);
   letter-spacing: var(--tracking-mono);
+  font-weight: 700;
+  cursor: pointer;
   transition: var(--transition-fast);
 }
 
 .url-paste-btn:hover:not(:disabled) {
   background-color: var(--surface-hover);
-  color: var(--text-primary);
-  border-color: var(--text-primary);
+  color: #ffffff;
+  border-color: var(--platform-color);
+  box-shadow: 0 0 12px var(--platform-glow);
 }
 
 .url-input-wrapper {
   display: flex;
   align-items: stretch;
   background-color: var(--surface-input);
-  border: var(--border-thick);
-  transition: border-color var(--transition-fast);
+  border: 2px solid var(--border-color);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .url-input-wrapper:focus-within {
-  border: var(--border-focus);
+  border-color: var(--platform-color);
+  box-shadow: 0 0 20px var(--platform-glow);
+}
+
+.url-input-wrapper.detected-youtube {
+  border-color: var(--brand-youtube);
+  box-shadow: 0 0 20px var(--brand-youtube-glow);
+}
+
+.url-input-wrapper.detected-tiktok {
+  border-color: var(--brand-tiktok);
+  box-shadow: 0 0 20px var(--brand-tiktok-glow);
+}
+
+.url-input-wrapper.detected-instagram {
+  border-color: var(--brand-instagram);
+  box-shadow: 0 0 20px var(--brand-instagram-glow);
+}
+
+.url-input-wrapper.detected-x {
+  border-color: var(--brand-x);
+  box-shadow: 0 0 20px var(--brand-x-glow);
 }
 
 .url-input-wrapper.has-error {
   border-color: var(--error);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
 }
 
 .url-field {
@@ -95,7 +135,7 @@
   min-width: 0;
   background: transparent;
   border: none;
-  color: var(--text-primary);
+  color: #ffffff;
   padding: 16px 20px;
   font-size: 1rem;
   letter-spacing: 0.02em;
@@ -107,7 +147,7 @@
 
 .url-field::placeholder {
   color: var(--text-muted);
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .url-submit-btn {
@@ -115,26 +155,31 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 0 28px;
-  background-color: var(--text-primary);
-  color: var(--bg);
+  padding: 0 32px;
+  background-color: var(--platform-color);
+  color: #090a0f;
   border: none;
   font-size: var(--text-small);
   font-weight: 800;
   letter-spacing: var(--tracking-mono);
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: all var(--transition-fast);
+  box-shadow: 0 0 15px var(--platform-glow);
   white-space: nowrap;
 }
 
 .url-submit-btn:hover:not(:disabled) {
-  background-color: #d4d4d8;
-  color: var(--bg);
+  filter: brightness(1.15);
+  box-shadow: 0 0 25px var(--platform-glow);
+  transform: translateY(-1px);
 }
 
 .url-submit-btn:disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: not-allowed;
+  box-shadow: none;
+  background-color: #334155;
+  color: #94a3b8;
 }
 
 /* URL Footer & Platform Indicators ---------------------------------------- */
@@ -144,7 +189,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding-top: 6px;
+  padding-top: 8px;
   font-size: var(--text-label);
   letter-spacing: var(--tracking-mono);
 }
@@ -152,32 +197,65 @@
 .url-platforms-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .url-platforms-prefix {
   color: var(--text-muted);
+  font-weight: 700;
 }
 
 .url-platform-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .url-platform-chip {
-  padding: 2px 6px;
-  border: var(--border);
-  color: var(--text-muted);
-  background-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  background-color: var(--surface-elevated);
   font-weight: 600;
+  font-size: 0.72rem;
+  transition: var(--transition-fast);
 }
 
-.url-platform-chip.is-active {
-  background-color: var(--text-primary);
-  color: var(--bg);
-  border-color: var(--text-primary);
-  font-weight: 800;
+.chip-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.url-platform-chip.chip-youtube.is-active {
+  background-color: rgba(255, 0, 0, 0.15);
+  border-color: #ff0000;
+  color: #ff4d4d;
+  box-shadow: 0 0 14px rgba(255, 0, 0, 0.35);
+}
+
+.url-platform-chip.chip-tiktok.is-active {
+  background-color: rgba(0, 242, 254, 0.15);
+  border-color: #00f2fe;
+  color: #00f2fe;
+  box-shadow: 0 0 14px rgba(0, 242, 254, 0.35);
+}
+
+.url-platform-chip.chip-instagram.is-active {
+  background-color: rgba(225, 48, 108, 0.15);
+  border-color: #e1306c;
+  color: #ff69b4;
+  box-shadow: 0 0 14px rgba(225, 48, 108, 0.35);
+}
+
+.url-platform-chip.chip-x.is-active {
+  background-color: rgba(29, 155, 240, 0.15);
+  border-color: #1d9bf0;
+  color: #1d9bf0;
+  box-shadow: 0 0 14px rgba(29, 155, 240, 0.35);
 }
 
 .url-state-indicator {
@@ -185,8 +263,9 @@
 }
 
 .url-detected-label {
-  color: var(--text-primary);
-  font-weight: 700;
+  color: var(--platform-color);
+  font-weight: 800;
+  text-shadow: 0 0 10px var(--platform-glow);
 }
 
 .url-idle-label {
@@ -198,7 +277,7 @@
   margin-top: var(--space-md);
   padding: 14px 18px;
   background-color: var(--surface-input);
-  border: var(--border);
+  border: 1px solid var(--border-color);
 }
 
 .downloader-loading-header {
@@ -211,7 +290,7 @@
 }
 
 .downloader-loading-title {
-  color: var(--text-primary);
+  color: var(--platform-color);
   font-weight: 700;
 }
 
@@ -232,30 +311,24 @@
   top: 0;
   left: 0;
   height: 100%;
-  background-color: var(--text-primary);
+  background-color: var(--platform-color);
+  box-shadow: 0 0 10px var(--platform-glow);
   animation: scanline 1.2s infinite ease-in-out;
 }
 
 @keyframes scanline {
-  0% {
-    left: -30%;
-    width: 30%;
-  }
-  50% {
-    width: 50%;
-  }
-  100% {
-    left: 100%;
-    width: 30%;
-  }
+  0% { left: -30%; width: 30%; }
+  50% { width: 50%; }
+  100% { left: 100%; width: 30%; }
 }
 
 /* Error Banner ------------------------------------------------------------ */
 .downloader-error-banner {
   margin-top: var(--space-md);
   padding: 14px 18px;
-  background-color: rgba(239, 68, 68, 0.08);
+  background-color: rgba(239, 68, 68, 0.1);
   border: 1px solid var(--error);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
 }
 
 .downloader-error-header {
@@ -271,25 +344,21 @@
 .downloader-error-message {
   margin-top: 8px;
   font-size: var(--text-small);
-  color: var(--text-primary);
+  color: #ffffff;
   line-height: 1.4;
 }
 
-/* Mobile Responsive ------------------------------------------------------- */
 @media (max-width: 640px) {
   .downloader-panel {
     padding: var(--space-md);
   }
-
   .url-input-wrapper {
     flex-direction: column;
   }
-
   .url-submit-btn {
-    padding: 14px 20px;
+    padding: 16px 20px;
     width: 100%;
   }
-
   .url-footer {
     flex-direction: column;
     align-items: flex-start;
