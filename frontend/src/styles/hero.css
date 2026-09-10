@@ -370,7 +370,7 @@
   border-color: var(--brand-tiktok);
   box-shadow: 0 0 16px var(--brand-tiktok-glow);
 }
-.channel-tt:hover .hero-channel-badge { color: #00f2fe; }
+.channel-tt:hover .hero-channel-badge { color: #38bdf8; }
 
 .channel-ig::before { background-color: var(--brand-instagram); }
 .channel-ig:hover {
@@ -384,7 +384,7 @@
   border-color: var(--brand-x);
   box-shadow: 0 0 16px var(--brand-x-glow);
 }
-.channel-x:hover .hero-channel-badge { color: #1d9bf0; }
+.channel-x:hover .hero-channel-badge { color: #c084fc; }
 
 @media (max-width: 640px) {
   .hero {

@@ -23,19 +23,19 @@
   --brand-youtube-glow: rgba(255, 0, 51, 0.35);
   --brand-youtube-bg: rgba(255, 0, 51, 0.08);
 
-  --brand-tiktok: #00f2fe;
+  --brand-tiktok: #1d9bf0;
   --brand-tiktok-coral: #fe2c55;
-  --brand-tiktok-glow: rgba(0, 242, 254, 0.32);
-  --brand-tiktok-bg: rgba(0, 242, 254, 0.08);
+  --brand-tiktok-glow: rgba(29, 155, 240, 0.35);
+  --brand-tiktok-bg: rgba(29, 155, 240, 0.08);
 
   --brand-instagram: #e1306c;
   --brand-instagram-glow: rgba(225, 48, 108, 0.35);
   --brand-instagram-bg: rgba(225, 48, 108, 0.08);
   --brand-instagram-gradient: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
 
-  --brand-x: #1d9bf0;
-  --brand-x-glow: rgba(29, 155, 240, 0.35);
-  --brand-x-bg: rgba(29, 155, 240, 0.08);
+  --brand-x: #b026ff;
+  --brand-x-glow: rgba(176, 38, 255, 0.38);
+  --brand-x-bg: rgba(176, 38, 255, 0.09);
 
   /* Cyber Technical Neon Accents */
   --neon-emerald: #00ff88;

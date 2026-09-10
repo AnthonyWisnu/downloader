@@ -115,11 +115,11 @@
   border-color: var(--brand-tiktok);
   box-shadow: 0 12px 32px var(--brand-tiktok-glow);
 }
-.card-tiktok .platform-card-scope { color: #00f2fe; }
+.card-tiktok .platform-card-scope { color: #38bdf8; }
 .card-tiktok .platform-format-pill {
-  border-color: rgba(0, 242, 254, 0.3);
-  color: #00f2fe;
-  background: rgba(0, 242, 254, 0.06);
+  border-color: rgba(29, 155, 240, 0.3);
+  color: #38bdf8;
+  background: rgba(29, 155, 240, 0.06);
 }
 
 /* Instagram Channel */
@@ -141,11 +141,11 @@
   border-color: var(--brand-x);
   box-shadow: 0 12px 32px var(--brand-x-glow);
 }
-.card-x .platform-card-scope { color: #1d9bf0; }
+.card-x .platform-card-scope { color: #c084fc; }
 .card-x .platform-format-pill {
-  border-color: rgba(29, 155, 240, 0.3);
-  color: #1d9bf0;
-  background: rgba(29, 155, 240, 0.06);
+  border-color: rgba(176, 38, 255, 0.3);
+  color: #c084fc;
+  background: rgba(176, 38, 255, 0.06);
 }
 
 .platform-card-header {
