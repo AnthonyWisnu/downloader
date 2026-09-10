@@ -46,6 +46,13 @@ function runFfprobe(args, options = {}) {
   });
 }
 
+function runGalleryDl(args, options = {}) {
+  return execTool("gallery-dl", args, {
+    missingMessage: "gallery-dl belum terinstall",
+    ...options
+  });
+}
+
 function parseYtDlpJson(output) {
   const trimmed = String(output || "").trim();
 
@@ -70,5 +77,6 @@ module.exports = {
   runYtDlp,
   runFfmpeg,
   runFfprobe,
+  runGalleryDl,
   parseYtDlpJson
 };

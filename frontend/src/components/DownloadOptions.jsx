@@ -16,7 +16,9 @@ function DownloadOptions({ adapted }) {
       <div className="download-options-title-bar mono">
         <span className="download-options-main-title">DOWNLOAD OPTIONS_</span>
         <span className="download-options-count">
-          TOTAL STREAMS: {adapted.downloads.length}
+          {imageDownloads.length > 1
+            ? `${imageDownloads.length} SLIDES DETECTED`
+            : `TOTAL STREAMS: ${adapted.downloads.length}`}
         </span>
       </div>
 
@@ -81,32 +83,39 @@ function DownloadOptions({ adapted }) {
           </div>
 
           {imageDownloads.length > 1 ? (
-            <div className="download-zip-banner">
-              <button
-                type="button"
-                className="btn btn-block mono download-all-zip-btn"
-                onClick={handleDownloadAllZip}
-                disabled={isZipping}
-              >
-                <Archive size={16} strokeWidth={2.5} aria-hidden="true" />
+            <>
+              <div className="download-zip-banner">
+                <button
+                  type="button"
+                  className="btn btn-block mono download-all-zip-btn"
+                  onClick={handleDownloadAllZip}
+                  disabled={isZipping}
+                >
+                  <Archive size={16} strokeWidth={2.5} aria-hidden="true" />
+                  <span>
+                    {isZipping ? "PACKAGING ALL SLIDES (ZIP)..." : `DOWNLOAD ALL (${imageDownloads.length} SLIDES ZIP)`}
+                  </span>
+                </button>
+              </div>
+              <div className="slideshow-ux-hint mono">
                 <span>
-                  {isZipping ? "PACKAGING ALL SLIDES (ZIP)..." : `DOWNLOAD ALL (${imageDownloads.length} SLIDES ZIP)`}
+                  * Preview &amp; unduh slide individual aktif pada viewer sebelah kiri. Pilih slide yang diinginkan dan klik Download Slide.
                 </span>
-              </button>
+              </div>
+            </>
+          ) : (
+            <div className="download-group-list">
+              {imageDownloads.map((item, index) => (
+                <DownloadOptionRow
+                  key={item.id}
+                  item={{
+                    ...item,
+                    label: item.label || `Photo ${index + 1}`
+                  }}
+                />
+              ))}
             </div>
-          ) : null}
-
-          <div className="download-group-list">
-            {imageDownloads.map((item, index) => (
-              <DownloadOptionRow
-                key={item.id}
-                item={{
-                  ...item,
-                  label: item.label || `Slide ${index + 1}`
-                }}
-              />
-            ))}
-          </div>
+          )}
         </div>
       ) : null}
     </div>

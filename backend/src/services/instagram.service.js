@@ -6,7 +6,7 @@ const { instagramGetUrl } = require("instagram-url-direct");
 const { getOrCreateMp3FromUrl } = require("./audio-cache.service");
 const { validateInstagramCookies } = require("./cookies.service");
 const { getOrCreateNormalizedVideo } = require("./video-cache.service");
-const { runYtDlp, parseYtDlpJson } = require("../utils/execTool");
+const { runYtDlp, runGalleryDl, parseYtDlpJson } = require("../utils/execTool");
 const { createServiceError } = require("../utils/errors");
 
 const BROWSER_USER_AGENT =
@@ -518,9 +518,91 @@ async function fetchIgViaLegacy(url) {
   return null;
 }
 
-async function fetchIgPhoto(url, cookiesPath) {
-  const shortcode = extractInstagramShortcode(url);
+async function fetchIgViaGalleryDl(url, cookiesPath) {
+  const cleanUrl = String(url || "").split("?")[0];
+  const args = ["-j"];
 
+  if (cookiesPath && fs.existsSync(cookiesPath)) {
+    args.push("--cookies", cookiesPath);
+  }
+
+  args.push(cleanUrl);
+
+  try {
+    const raw = await runGalleryDl(args);
+    const parsed = JSON.parse(raw);
+    let postMeta = null;
+    const mediaItems = [];
+
+    for (const entry of parsed) {
+      if (!Array.isArray(entry)) continue;
+      const [type, data1, data2] = entry;
+
+      if (type === 2 && data1 && typeof data1 === "object") {
+        postMeta = data1;
+      } else if (type === 3 && typeof data1 === "string") {
+        const extension = (data2?.extension || "").toLowerCase();
+        const isVideo = extension === "mp4" || extension === "mkv" || extension === "webm";
+        mediaItems.push({
+          url: data1,
+          format: isVideo ? "mp4" : (extension || "jpg"),
+          isVideo,
+          meta: data2 || {}
+        });
+      }
+    }
+
+    if (mediaItems.length === 0) {
+      return null;
+    }
+
+    const downloads = mediaItems.map((item, index) => ({
+      label: mediaItems.length > 1
+        ? `${item.format.toUpperCase()} / SLIDE ${index + 1}`
+        : (item.isVideo ? "MP4 / VIDEO" : "High-Res Photo"),
+      url: item.url,
+      format: item.format
+    }));
+
+    const caption = postMeta?.description || postMeta?.caption || "Instagram content";
+    const thumbnail = mediaItems[0]?.url || null;
+
+    return {
+      platform: "instagram",
+      type: downloads.length > 1 ? "carousel" : (mediaItems[0]?.isVideo ? "video" : "photo"),
+      title: caption,
+      thumbnail,
+      sourceUrl: url,
+      downloads
+    };
+  } catch (err) {
+    const rawErr = [err?.stderr, err?.stdout, err?.message].filter(Boolean).join("\n");
+    if (
+      rawErr.includes("404") ||
+      rawErr.includes("Media not found or unavailable") ||
+      rawErr.includes("httpErrorPage")
+    ) {
+      throw createServiceError("Konten tidak ditemukan atau postingan bersifat privat", 404);
+    }
+    return null;
+  }
+}
+
+async function fetchIgPhoto(url, cookiesPath) {
+  // 1. Primary extractor for photos and multi-slide carousels: gallery-dl
+  try {
+    const gdlResult = await fetchIgViaGalleryDl(url, cookiesPath);
+    if (gdlResult && gdlResult.downloads.length > 0) {
+      return gdlResult;
+    }
+  } catch (err) {
+    if (err.message?.startsWith("ERR:")) {
+      throw err;
+    }
+  }
+
+  // 2. Secondary fallbacks (GraphQL, REST, Legacy)
+  const shortcode = extractInstagramShortcode(url);
   let result = null;
 
   if (shortcode) {
@@ -536,7 +618,7 @@ async function fetchIgPhoto(url, cookiesPath) {
   }
 
   if (!result || result.items.length === 0) {
-    throw createServiceError("ERR: Konten tidak dapat diakses atau tidak didukung");
+    throw createServiceError("ERR: Konten tidak dapat diakses atau postingan bersifat privat");
   }
 
   const downloads = result.items.map((item, index) => ({
@@ -612,17 +694,21 @@ async function downloadInstagram(url) {
       downloads: responseDownloads
     };
   } catch (error) {
-    if (isNoVideoFormatsError(error) || error?.code === "ENOENT" || String(error?.message || "").includes("belum terinstall")) {
-      logYtDlpStderr(error);
-      return fetchIgPhoto(url, cookies.path);
-    }
+    logYtDlpStderr(error);
 
     if (error.message?.startsWith("ERR:")) {
       throw error;
     }
 
-    logYtDlpStderr(error);
-    throw normalizeInstagramError(error);
+    // Try extracting photo/carousel via gallery-dl and fallbacks
+    try {
+      return await fetchIgPhoto(url, cookies.path);
+    } catch (photoError) {
+      if (photoError.message?.startsWith("ERR:")) {
+        throw photoError;
+      }
+      throw normalizeInstagramError(error);
+    }
   }
 }
 
