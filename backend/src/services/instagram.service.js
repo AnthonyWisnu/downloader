@@ -542,18 +542,22 @@ async function fetchIgViaGalleryDl(url, cookiesPath) {
       if (type === 2 && data1 && typeof data1 === "object") {
         postMeta = data1;
       } else if (type === 3 && typeof data1 === "string") {
-        const isAudio = Boolean(
-          data2?.audio_url ||
-          data2?.audio_title ||
-          (data2?.width === 0 && data2?.height === 0 && (data2?.extension === "mp4" || data2?.extension === "m4a" || data2?.extension === "mp3"))
-        );
+        const extension = (data2?.extension || "").toLowerCase();
+        const isAudioFile =
+          extension === "mp3" ||
+          extension === "m4a" ||
+          extension === "aac" ||
+          (data2?.width === 0 && data2?.height === 0 && (extension === "mp4" || extension === "mkv" || extension === "webm"));
 
-        if (isAudio) {
-          audioUrl = data2?.audio_url || data1;
+        if (isAudioFile) {
+          audioUrl = data1;
           continue;
         }
 
-        const extension = (data2?.extension || "").toLowerCase();
+        if (data2?.audio_url && typeof data2.audio_url === "string" && data2.audio_url.startsWith("http")) {
+          audioUrl = data2.audio_url;
+        }
+
         const isVideo = extension === "mp4" || extension === "mkv" || extension === "webm";
         mediaItems.push({
           url: data1,
@@ -576,7 +580,7 @@ async function fetchIgViaGalleryDl(url, cookiesPath) {
       format: item.format
     }));
 
-    let audioStatus = "unavailable";
+    let audioStatus = null;
     if (audioUrl) {
       try {
         const audioFile = await getOrCreateMp3FromUrl(`instagram-photo-audio:${audioUrl}`, audioUrl, {
