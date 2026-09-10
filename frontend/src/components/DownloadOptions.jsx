@@ -8,7 +8,7 @@ function DownloadOptions({ adapted }) {
   const { videoDownloads, audioDownloads, imageDownloads, audioWarning, title } = adapted;
 
   const handleDownloadAllZip = () => {
-    downloadAllAsZip(title, imageDownloads, setIsZipping);
+    downloadAllAsZip(title, imageDownloads, setIsZipping, adapted);
   };
 
   return (

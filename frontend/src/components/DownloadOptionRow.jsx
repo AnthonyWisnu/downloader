@@ -24,7 +24,7 @@ function DownloadOptionRow({ item }) {
         href={item.directUrl}
         target="_blank"
         rel="noreferrer"
-        download
+        download={item.filename || true}
         aria-label={`Download ${item.quality} ${item.format}`}
       >
         <span>DOWNLOAD</span>

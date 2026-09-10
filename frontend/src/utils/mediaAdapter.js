@@ -1,5 +1,6 @@
 import { platformLabel, typeLabel } from "./detectPlatform";
 import { getMediaUrl } from "./mediaProxy";
+import { generateMediaFilename } from "./filenameHelper";
 
 const PORTRAIT_TYPES = new Set(["shorts", "reels", "story", "story_photo"]);
 const IMAGE_FORMATS = new Set(["jpg", "jpeg", "png", "webp"]);
@@ -38,13 +39,14 @@ function categorizeDownload(download = {}) {
   return "video";
 }
 
-function normalizeDownloadItem(download, index) {
+function normalizeDownloadItem(download, index, fallbackFilename = "") {
   const category = categorizeDownload(download);
   const format = parseFormat(download);
   const label = download.label || `Download ${index + 1}`;
   const quality = parseQuality(label);
   const rawUrl = download.url || "";
-  const directUrl = getMediaUrl(rawUrl, { download: true });
+  const finalFilename = download.filename || fallbackFilename || "";
+  const directUrl = getMediaUrl(rawUrl, { download: true, filename: finalFilename });
   const streamUrl = getMediaUrl(rawUrl);
 
   return {
@@ -56,6 +58,7 @@ function normalizeDownloadItem(download, index) {
     rawUrl,
     directUrl,
     streamUrl,
+    filename: finalFilename,
     size: download.size || null
   };
 }
@@ -72,11 +75,34 @@ export function adaptMediaResult(raw = {}) {
   const sourceUrl = raw.sourceUrl || null;
   const author = raw.author || raw.uploader || null;
 
-  const downloads = Array.isArray(raw.downloads)
-    ? raw.downloads
-        .filter((d) => d && d.url)
-        .map(normalizeDownloadItem)
+  const rawDownloads = Array.isArray(raw.downloads)
+    ? raw.downloads.filter((d) => d && d.url)
     : [];
+
+  const totalImages = rawDownloads.filter((d) => categorizeDownload(d) === "image").length;
+  let imageCounter = 0;
+
+  const downloads = rawDownloads.map((download, index) => {
+    const category = categorizeDownload(download);
+    let slideIndex = null;
+    if (category === "image" && totalImages > 1) {
+      imageCounter++;
+      slideIndex = imageCounter;
+    }
+
+    const fallbackFilename = generateMediaFilename({
+      platform,
+      author,
+      title,
+      sourceUrl,
+      kind: category === "image" ? (totalImages > 1 ? "slide" : "photo") : (category === "audio" ? "audio" : "video"),
+      slideIndex,
+      totalSlides: totalImages,
+      format: parseFormat(download)
+    });
+
+    return normalizeDownloadItem(download, index, fallbackFilename);
+  });
 
   const videoDownloads = downloads.filter((d) => d.category === "video");
   const audioDownloads = downloads.filter((d) => d.category === "audio");

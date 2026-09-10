@@ -1,6 +1,7 @@
 import axios from "axios";
+import { generateMediaFilename } from "./filenameHelper";
 
-export async function downloadAllAsZip(title, items, setZippingState) {
+export async function downloadAllAsZip(title, items, setZippingState, mediaContext = {}) {
   if (!Array.isArray(items) || items.length === 0) {
     return;
   }
@@ -10,13 +11,44 @@ export async function downloadAllAsZip(title, items, setZippingState) {
   }
 
   try {
+    const total = items.length;
+    const platform = mediaContext.platform || "";
+    const author = mediaContext.author || "";
+    const sourceUrl = mediaContext.sourceUrl || "";
+    const postTitle = mediaContext.title || title || "slides";
+
+    const zipFilename = generateMediaFilename({
+      platform,
+      author,
+      title: postTitle,
+      sourceUrl,
+      kind: "zip",
+      totalSlides: total,
+      format: "zip"
+    });
+
     const payload = {
-      title: title || "slides",
-      items: items.map((item, idx) => ({
-        url: item.rawUrl || item.url || item.directUrl,
-        format: item.format || "jpg",
-        filename: `slide-${String(idx + 1).padStart(2, "0")}.${item.format ? String(item.format).toLowerCase() : "jpg"}`
-      }))
+      title: postTitle,
+      filename: zipFilename,
+      items: items.map((item, idx) => {
+        const itemFormat = item.format ? String(item.format).toLowerCase() : "jpg";
+        const itemFilename = item.filename || generateMediaFilename({
+          platform,
+          author,
+          title: postTitle,
+          sourceUrl,
+          kind: "slide",
+          slideIndex: idx + 1,
+          totalSlides: total,
+          format: itemFormat
+        });
+
+        return {
+          url: item.rawUrl || item.url || item.directUrl,
+          format: itemFormat,
+          filename: itemFilename
+        };
+      })
     };
 
     const response = await axios.post("/api/batch/zip", payload, {
@@ -25,14 +57,10 @@ export async function downloadAllAsZip(title, items, setZippingState) {
     });
 
     const blobUrl = window.URL.createObjectURL(new Blob([response.data], { type: "application/zip" }));
-    const safeTitle = String(title || "slides")
-      .trim()
-      .replace(/[^\w.-]+/g, "_")
-      .slice(0, 35) || "slides";
 
     const link = document.createElement("a");
     link.href = blobUrl;
-    link.setAttribute("download", `void-${safeTitle}-all-slides.zip`);
+    link.setAttribute("download", zipFilename);
     document.body.appendChild(link);
     link.click();
 

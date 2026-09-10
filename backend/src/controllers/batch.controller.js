@@ -1,6 +1,7 @@
 const archiver = require("archiver");
 const axios = require("axios");
 const { validateMediaUrl } = require("./media.controller");
+const { sanitizeSafeFilename } = require("../utils/filenameHelper");
 
 function sanitizeFilename(name) {
   return String(name || "slides")
@@ -14,6 +15,7 @@ async function createBatchZip(req, res) {
   try {
     let title = "slides";
     let items = [];
+    const customFilename = req.body?.filename || req.query?.filename;
 
     if (req.method === "POST") {
       title = req.body?.title || title;
@@ -33,8 +35,13 @@ async function createBatchZip(req, res) {
 
     // Batasi hingga 50 item per batch agar performa server terjaga
     const safeItems = items.slice(0, 50);
-    const cleanTitle = sanitizeFilename(title);
-    const zipFilename = `void-${cleanTitle}-all-slides.zip`;
+    let zipFilename;
+    if (customFilename && typeof customFilename === "string") {
+      zipFilename = sanitizeSafeFilename(customFilename, "zip");
+    } else {
+      const cleanTitle = sanitizeFilename(title);
+      zipFilename = `VOID_${cleanTitle}_all-slides.zip`;
+    }
 
     res.setHeader("Content-Type", "application/zip");
     res.setHeader("Content-Disposition", `attachment; filename="${zipFilename}"`);
@@ -75,7 +82,9 @@ async function createBatchZip(req, res) {
         if (rawUrl.includes(".png")) ext = "png";
         if (rawUrl.includes(".mp4")) ext = "mp4";
 
-        const slideName = `slide-${String(i + 1).padStart(2, "0")}.${ext}`;
+        const slideName = item?.filename
+          ? sanitizeSafeFilename(item.filename, ext)
+          : `slide-${String(i + 1).padStart(2, "0")}.${ext}`;
 
         const streamResponse = await axios.get(parsedUrl.toString(), {
           responseType: "stream",

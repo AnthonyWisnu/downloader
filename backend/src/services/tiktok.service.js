@@ -10,6 +10,7 @@ const {
 } = require("./media-cache.service");
 const { runYtDlp } = require("../utils/execTool");
 const { createServiceError } = require("../utils/errors");
+const { generateMediaFilename } = require("../utils/filenameHelper");
 
 function getDownloader() {
   const tiktokApi = require("@tobyg74/tiktok-api-dl");
@@ -96,7 +97,7 @@ async function downloadAudioWithYtDlp(url) {
   };
 }
 
-async function createNormalizedVideoDownload(videoUrl, label) {
+async function createNormalizedVideoDownload(videoUrl, label, filename = "") {
   try {
     const videoFile = await getOrCreateNormalizedVideo({
       sourceKey: `tiktok-video:${videoUrl}`,
@@ -109,11 +110,16 @@ async function createNormalizedVideoDownload(videoUrl, label) {
       }
     });
 
+    const fileUrl = filename
+      ? `/api/file?token=${videoFile.token}&download=1&filename=${encodeURIComponent(filename)}`
+      : `/api/file?token=${videoFile.token}&download=1`;
+
     return {
       download: {
         label,
-        url: `/api/file?token=${videoFile.token}&download=1`,
-        format: "mp4"
+        url: fileUrl,
+        format: "mp4",
+        filename
       },
       previewUrl: `/api/file?token=${videoFile.token}`
     };
@@ -124,7 +130,8 @@ async function createNormalizedVideoDownload(videoUrl, label) {
       download: {
         label: `${label} Fallback External`,
         url: videoUrl,
-        format: "mp4"
+        format: "mp4",
+        filename
       },
       previewUrl: ""
     };
@@ -161,6 +168,18 @@ async function collectDownloads(result, sourceUrl) {
   const downloads = [];
   let previewUrl = "";
 
+  const author = firstString(
+    payload.author?.unique_id,
+    payload.author?.nickname,
+    payload.author?.name,
+    payload.author?.username,
+    payload.unique_id,
+    payload.nickname,
+    payload.author,
+    ""
+  );
+  const title = firstString(payload.desc, payload.title, payload.description, "TikTok content");
+
   const videoUrl = firstString(
     payload.videoHD,
     payload.videoSD,
@@ -177,7 +196,15 @@ async function collectDownloads(result, sourceUrl) {
   );
 
   if (videoUrl) {
-    const normalizedVideo = await createNormalizedVideoDownload(videoUrl, "Video (No Watermark)");
+    const filename = generateMediaFilename({
+      platform: "tiktok",
+      author,
+      title,
+      sourceUrl,
+      kind: "video",
+      format: "mp4"
+    });
+    const normalizedVideo = await createNormalizedVideoDownload(videoUrl, "Video (No Watermark)", filename);
     downloads.push(normalizedVideo.download);
     previewUrl = normalizedVideo.previewUrl;
   }
@@ -191,7 +218,15 @@ async function collectDownloads(result, sourceUrl) {
   );
 
   if (watermarkUrl) {
-    const normalizedWatermarkVideo = await createNormalizedVideoDownload(watermarkUrl, "Video (Watermark)");
+    const filename = generateMediaFilename({
+      platform: "tiktok",
+      author,
+      title,
+      sourceUrl,
+      kind: "video-wm",
+      format: "mp4"
+    });
+    const normalizedWatermarkVideo = await createNormalizedVideoDownload(watermarkUrl, "Video (Watermark)", filename);
     downloads.push(normalizedWatermarkVideo.download);
     previewUrl = previewUrl || normalizedWatermarkVideo.previewUrl;
   }
@@ -225,6 +260,16 @@ async function collectDownloads(result, sourceUrl) {
     payload.musicInfo?.url,
     payload.musicInfo?.downloadUrl
   );
+
+  const audioFilename = generateMediaFilename({
+    platform: "tiktok",
+    author,
+    title,
+    sourceUrl,
+    kind: "audio",
+    format: "mp3"
+  });
+
   if (audioUrl) {
     try {
       const audioFile = await getOrCreateMp3FromUrl(`tiktok-audio-url:${audioUrl}`, audioUrl, {
@@ -233,8 +278,9 @@ async function collectDownloads(result, sourceUrl) {
 
       downloads.push({
         label: "Audio Only",
-        url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
-        format: "mp3"
+        url: `/api/file?token=${audioFile.token}&kind=audio&download=1&filename=${encodeURIComponent(audioFilename)}`,
+        format: "mp3",
+        filename: audioFilename
       });
     } catch (error) {
       logAudioConvertError(error, audioUrl);
@@ -244,8 +290,9 @@ async function collectDownloads(result, sourceUrl) {
 
         downloads.push({
           label: "Audio Only",
-          url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
-          format: "mp3"
+          url: `/api/file?token=${audioFile.token}&kind=audio&download=1&filename=${encodeURIComponent(audioFilename)}`,
+          format: "mp3",
+          filename: audioFilename
         });
       } catch (fallbackError) {
         logAudioFallbackError(fallbackError);
@@ -257,8 +304,9 @@ async function collectDownloads(result, sourceUrl) {
 
       downloads.push({
         label: "Audio Only",
-        url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
-        format: "mp3"
+        url: `/api/file?token=${audioFile.token}&kind=audio&download=1&filename=${encodeURIComponent(audioFilename)}`,
+        format: "mp3",
+        filename: audioFilename
       });
     } catch (error) {
       logAudioFallbackError(error);
@@ -270,10 +318,21 @@ async function collectDownloads(result, sourceUrl) {
   if (Array.isArray(images)) {
     images.forEach((imageUrl, index) => {
       if (typeof imageUrl === "string" && imageUrl.length > 0) {
+        const slideFilename = generateMediaFilename({
+          platform: "tiktok",
+          author,
+          title,
+          sourceUrl,
+          kind: images.length > 1 ? "slide" : "photo",
+          slideIndex: images.length > 1 ? index + 1 : null,
+          totalSlides: images.length > 1 ? images.length : null,
+          format: "jpg"
+        });
         downloads.push({
           label: `Slideshow Image ${index + 1}`,
           url: imageUrl,
-          format: "jpg"
+          format: "jpg",
+          filename: slideFilename
         });
       }
     });
@@ -281,7 +340,9 @@ async function collectDownloads(result, sourceUrl) {
 
   return {
     downloads,
-    previewUrl
+    previewUrl,
+    author,
+    title
   };
 }
 
@@ -290,6 +351,16 @@ function getMetadata(result) {
 
   return {
     title: firstString(payload.desc, payload.title, payload.description, "TikTok content"),
+    author: firstString(
+      payload.author?.unique_id,
+      payload.author?.nickname,
+      payload.author?.name,
+      payload.author?.username,
+      payload.unique_id,
+      payload.nickname,
+      payload.author,
+      ""
+    ),
     thumbnail: firstString(
       payload.cover,
       payload.author?.avatar,
@@ -323,6 +394,7 @@ async function downloadTikTok(url) {
     platform: "tiktok",
     type: hasImages ? "slideshow" : "video",
     title: metadata.title,
+    author: collected.author || metadata.author || null,
     thumbnail: metadata.thumbnail,
     previewUrl: collected.previewUrl || undefined,
     downloads

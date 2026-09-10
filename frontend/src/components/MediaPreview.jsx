@@ -14,7 +14,7 @@ function MediaPreview({ adapted }) {
   const [activeTab, setActiveTab] = useState(hasSlides ? "slideshow" : "video");
 
   const handleDownloadAllZip = () => {
-    downloadAllAsZip(title, imageDownloads, setIsZipping);
+    downloadAllAsZip(title, imageDownloads, setIsZipping, adapted);
   };
 
   const renderTabs = () => {
@@ -91,7 +91,7 @@ function MediaPreview({ adapted }) {
             href={activeSlide.directUrl}
             target="_blank"
             rel="noreferrer"
-            download
+            download={activeSlide.filename || true}
           >
             <Download size={14} strokeWidth={2.5} aria-hidden="true" />
             <span>DOWNLOAD SLIDE [{slideIndex + 1}]</span>

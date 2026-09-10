@@ -4,6 +4,7 @@ const {
   getCacheFilePath,
   hasUsableFile
 } = require("../services/media-cache.service");
+const { sanitizeSafeFilename } = require("../utils/filenameHelper");
 
 const FILE_TYPES = {
   audio: {
@@ -35,7 +36,11 @@ function streamFile(req, res, filePath, fileType) {
   res.setHeader("Cache-Control", "private, max-age=7200");
 
   if (req.query.download === "1") {
-    res.setHeader("Content-Disposition", `attachment; filename="${fileType.filename}"`);
+    let filename = fileType.filename;
+    if (req.query.filename && typeof req.query.filename === "string") {
+      filename = sanitizeSafeFilename(req.query.filename, fileType.extension);
+    }
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
   }
 
   if (!range) {

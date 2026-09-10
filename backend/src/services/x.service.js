@@ -3,6 +3,7 @@ const path = require("path");
 const axios = require("axios");
 const { runYtDlp, parseYtDlpJson } = require("../utils/execTool");
 const { createServiceError } = require("../utils/errors");
+const { generateMediaFilename } = require("../utils/filenameHelper");
 const { validateXCookies } = require("./cookies.service");
 const { getOrCreateNormalizedVideo } = require("./video-cache.service");
 const {
@@ -417,11 +418,24 @@ async function downloadX(url) {
       // Kasus 1A: Hanya Foto / Slideshow (tanpa video)
       if (videos.length === 0 && photos.length > 0) {
         const type = photos.length > 1 ? "slideshow" : "photo";
-        const downloads = photos.map((imgUrl, index) => ({
-          label: photos.length > 1 ? `Slideshow Image ${index + 1}` : "High-Res Photo",
-          url: imgUrl,
-          format: "jpg"
-        }));
+        const downloads = photos.map((imgUrl, index) => {
+          const filename = generateMediaFilename({
+            platform: "x",
+            author,
+            title,
+            sourceUrl: url,
+            kind: photos.length > 1 ? "slide" : "photo",
+            slideIndex: photos.length > 1 ? index + 1 : null,
+            totalSlides: photos.length > 1 ? photos.length : null,
+            format: "jpg"
+          });
+          return {
+            label: photos.length > 1 ? `Slideshow Image ${index + 1}` : "High-Res Photo",
+            url: imgUrl,
+            format: "jpg",
+            filename
+          };
+        });
 
         return {
           platform: "x",
@@ -438,6 +452,14 @@ async function downloadX(url) {
       if (photos.length > 0 && videos.length > 0) {
         const downloads = [];
         let previewUrl = null;
+        const videoFilename = generateMediaFilename({
+          platform: "x",
+          author,
+          title,
+          sourceUrl: url,
+          kind: "video",
+          format: "mp4"
+        });
 
         try {
           const videoFile = await getOrCreateNormalizedVideo({
@@ -450,37 +472,67 @@ async function downloadX(url) {
           });
           downloads.push({
             label: "MP4 / VIDEO",
-            url: `/api/file?token=${videoFile.token}&download=1`,
-            format: "mp4"
+            url: `/api/file?token=${videoFile.token}&download=1&filename=${encodeURIComponent(videoFilename)}`,
+            format: "mp4",
+            filename: videoFilename
           });
           previewUrl = `/api/file?token=${videoFile.token}`;
 
           try {
             const audioFile = await downloadXAudio(url);
+            const audioFilename = generateMediaFilename({
+              platform: "x",
+              author,
+              title,
+              sourceUrl: url,
+              kind: "audio",
+              format: "mp3"
+            });
             downloads.push({
               label: "Audio Only",
-              url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
-              format: "mp3"
+              url: `/api/file?token=${audioFile.token}&kind=audio&download=1&filename=${encodeURIComponent(audioFilename)}`,
+              format: "mp3",
+              filename: audioFilename
             });
           } catch {
             // optional audio
           }
         } catch {
           videos.forEach((v, idx) => {
+            const vName = generateMediaFilename({
+              platform: "x",
+              author,
+              title,
+              sourceUrl: url,
+              kind: videos.length > 1 ? `video-${idx + 1}` : "video",
+              format: "mp4"
+            });
             downloads.push({
               label: videos.length > 1 ? `MP4 / VIDEO ${idx + 1}` : "MP4 / VIDEO",
               url: v.url,
-              format: "mp4"
+              format: "mp4",
+              filename: vName
             });
           });
           previewUrl = videos[0]?.url || null;
         }
 
         photos.forEach((imgUrl, idx) => {
+          const slideFilename = generateMediaFilename({
+            platform: "x",
+            author,
+            title,
+            sourceUrl: url,
+            kind: "slide",
+            slideIndex: idx + 1,
+            totalSlides: photos.length,
+            format: "jpg"
+          });
           downloads.push({
             label: `Slideshow Image ${idx + 1}`,
             url: imgUrl,
-            format: "jpg"
+            format: "jpg",
+            filename: slideFilename
           });
         });
 
@@ -498,11 +550,22 @@ async function downloadX(url) {
 
       // Kasus 1C: Multiple Videos (2+ Video tanpa foto)
       if (videos.length > 1 && photos.length === 0) {
-        const downloads = videos.map((v, idx) => ({
-          label: `MP4 / VIDEO ${idx + 1}`,
-          url: v.url,
-          format: "mp4"
-        }));
+        const downloads = videos.map((v, idx) => {
+          const vName = generateMediaFilename({
+            platform: "x",
+            author,
+            title,
+            sourceUrl: url,
+            kind: `video-${idx + 1}`,
+            format: "mp4"
+          });
+          return {
+            label: `MP4 / VIDEO ${idx + 1}`,
+            url: v.url,
+            format: "mp4",
+            filename: vName
+          };
+        });
 
         return {
           platform: "x",
@@ -528,6 +591,7 @@ async function downloadX(url) {
       throw metaError;
     }
 
+    const author = metadata.uploader || metadata.uploader_id || "";
     const title = metadata.title || metadata.description || "X post";
     const thumbnail = metadata.thumbnail || null;
     const isVideo = hasVideoFormats(metadata);
@@ -535,16 +599,30 @@ async function downloadX(url) {
 
     if (!isVideo && images.length > 0) {
       const type = images.length > 1 ? "slideshow" : "photo";
-      const downloads = images.map((imageUrl, index) => ({
-        label: images.length > 1 ? `Slideshow Image ${index + 1}` : "High-Res Photo",
-        url: imageUrl,
-        format: "jpg"
-      }));
+      const downloads = images.map((imageUrl, index) => {
+        const filename = generateMediaFilename({
+          platform: "x",
+          author,
+          title,
+          sourceUrl: url,
+          kind: images.length > 1 ? "slide" : "photo",
+          slideIndex: images.length > 1 ? index + 1 : null,
+          totalSlides: images.length > 1 ? images.length : null,
+          format: "jpg"
+        });
+        return {
+          label: images.length > 1 ? `Slideshow Image ${index + 1}` : "High-Res Photo",
+          url: imageUrl,
+          format: "jpg",
+          filename
+        };
+      });
 
       return {
         platform: "x",
         type,
         title,
+        author: author || null,
         thumbnail: images[0],
         sourceUrl: url,
         downloads
@@ -561,6 +639,7 @@ async function downloadX(url) {
     const isGif = !hasAudio && duration > 0 && duration <= 10;
     const type = isGif ? "gif" : "video";
     const label = isGif ? "MP4 / GIF" : "MP4 / VIDEO";
+    const kind = isGif ? "gif" : "video";
 
     let videoFile = null;
     try {
@@ -574,16 +653,28 @@ async function downloadX(url) {
       });
     } catch (vErr) {
       if (tweetData?.videos?.length > 0) {
-        const downloads = tweetData.videos.map((v, idx) => ({
-          label: tweetData.videos.length > 1 ? `MP4 / VIDEO ${idx + 1}` : label,
-          url: v.url,
-          format: "mp4"
-        }));
+        const downloads = tweetData.videos.map((v, idx) => {
+          const vName = generateMediaFilename({
+            platform: "x",
+            author,
+            title,
+            sourceUrl: url,
+            kind: tweetData.videos.length > 1 ? `video-${idx + 1}` : kind,
+            format: "mp4"
+          });
+          return {
+            label: tweetData.videos.length > 1 ? `MP4 / VIDEO ${idx + 1}` : label,
+            url: v.url,
+            format: "mp4",
+            filename: vName
+          };
+        });
 
         return {
           platform: "x",
           type,
           title,
+          author: author || null,
           thumbnail: tweetData.videos[0]?.thumbnail || thumbnail,
           sourceUrl: url,
           previewUrl: tweetData.videos[0]?.url || null,
@@ -593,21 +684,40 @@ async function downloadX(url) {
       throw vErr;
     }
 
+    const videoFilename = generateMediaFilename({
+      platform: "x",
+      author,
+      title,
+      sourceUrl: url,
+      kind,
+      format: "mp4"
+    });
+
     const downloads = [
       {
         label,
-        url: `/api/file?token=${videoFile.token}&download=1`,
-        format: "mp4"
+        url: `/api/file?token=${videoFile.token}&download=1&filename=${encodeURIComponent(videoFilename)}`,
+        format: "mp4",
+        filename: videoFilename
       }
     ];
 
     if (hasAudio) {
       try {
         const audioFile = await downloadXAudio(url);
+        const audioFilename = generateMediaFilename({
+          platform: "x",
+          author,
+          title,
+          sourceUrl: url,
+          kind: "audio",
+          format: "mp3"
+        });
         downloads.push({
           label: "Audio Only",
-          url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
-          format: "mp3"
+          url: `/api/file?token=${audioFile.token}&kind=audio&download=1&filename=${encodeURIComponent(audioFilename)}`,
+          format: "mp3",
+          filename: audioFilename
         });
       } catch {
         // Audio optional jika ekstraksi gagal
@@ -616,10 +726,21 @@ async function downloadX(url) {
 
     if (images.length > 0) {
       images.forEach((imgUrl, idx) => {
+        const slideFilename = generateMediaFilename({
+          platform: "x",
+          author,
+          title,
+          sourceUrl: url,
+          kind: "slide",
+          slideIndex: idx + 1,
+          totalSlides: images.length,
+          format: "jpg"
+        });
         downloads.push({
           label: `Slideshow Image ${idx + 1}`,
           url: imgUrl,
-          format: "jpg"
+          format: "jpg",
+          filename: slideFilename
         });
       });
     }
@@ -628,6 +749,7 @@ async function downloadX(url) {
       platform: "x",
       type: images.length > 0 ? "slideshow" : type,
       title,
+      author: author || null,
       thumbnail,
       sourceUrl: url,
       previewUrl: `/api/file?token=${videoFile.token}`,

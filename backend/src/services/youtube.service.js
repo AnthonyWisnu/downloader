@@ -3,6 +3,7 @@ const path = require("path");
 const axios = require("axios");
 const { runYtDlp, parseYtDlpJson } = require("../utils/execTool");
 const { createServiceError } = require("../utils/errors");
+const { generateMediaFilename } = require("../utils/filenameHelper");
 const { validateYoutubeCookies } = require("./cookies.service");
 const { getOrCreateNormalizedVideo } = require("./video-cache.service");
 const {
@@ -257,11 +258,25 @@ async function extractYouTubeCommunity(url) {
   }
 
   const title = text || `Postingan Komunitas oleh ${author || "Kreator YouTube"}`;
-  const downloads = images.map((imgUrl, index) => ({
-    label: images.length > 1 ? `Slideshow Image ${index + 1}` : "High-Res Photo",
-    url: imgUrl,
-    format: "jpg"
-  }));
+  const downloads = images.map((imgUrl, index) => {
+    const filename = generateMediaFilename({
+      platform: "youtube",
+      author: author || "creator",
+      title: text || "community-post",
+      sourceUrl: url,
+      kind: images.length > 1 ? "slide" : "photo",
+      slideIndex: images.length > 1 ? index + 1 : null,
+      totalSlides: images.length > 1 ? images.length : null,
+      format: "jpg"
+    });
+
+    return {
+      label: images.length > 1 ? `Slideshow Image ${index + 1}` : "High-Res Photo",
+      url: imgUrl,
+      format: "jpg",
+      filename
+    };
+  });
 
   return {
     platform: "youtube",
@@ -303,33 +318,53 @@ async function downloadYouTube(url) {
       }
     });
 
+    const author = metadata.uploader || metadata.channel || metadata.uploader_id || "";
+    const title = metadata.title || "YouTube video";
+    const thumbnail = metadata.thumbnail || null;
+    const type = detectYouTubeType(url);
+    const videoFilename = generateMediaFilename({
+      platform: "youtube",
+      author,
+      title,
+      sourceUrl: url,
+      kind: type === "shorts" ? "shorts" : "video",
+      format: "mp4"
+    });
+
     const downloads = [
       {
         label: "MP4 / VIDEO",
-        url: `/api/file?token=${videoFile.token}&download=1`,
-        format: "mp4"
+        url: `/api/file?token=${videoFile.token}&download=1&filename=${encodeURIComponent(videoFilename)}`,
+        format: "mp4",
+        filename: videoFilename
       }
     ];
 
     try {
       const audioFile = await downloadYouTubeAudio(url);
+      const audioFilename = generateMediaFilename({
+        platform: "youtube",
+        author,
+        title,
+        sourceUrl: url,
+        kind: "audio",
+        format: "mp3"
+      });
       downloads.push({
         label: "Audio Only",
-        url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
-        format: "mp3"
+        url: `/api/file?token=${audioFile.token}&kind=audio&download=1&filename=${encodeURIComponent(audioFilename)}`,
+        format: "mp3",
+        filename: audioFilename
       });
     } catch {
       // Audio optional jika ekstraksi audio gagal
     }
 
-    const title = metadata.title || "YouTube video";
-    const thumbnail = metadata.thumbnail || null;
-    const type = detectYouTubeType(url);
-
     return {
       platform: "youtube",
       type,
       title,
+      author: author || null,
       thumbnail,
       sourceUrl: url,
       previewUrl: `/api/file?token=${videoFile.token}`,

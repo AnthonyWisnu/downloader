@@ -8,6 +8,7 @@ const { validateInstagramCookies } = require("./cookies.service");
 const { getOrCreateNormalizedVideo } = require("./video-cache.service");
 const { runYtDlp, runGalleryDl, parseYtDlpJson } = require("../utils/execTool");
 const { createServiceError } = require("../utils/errors");
+const { generateMediaFilename } = require("../utils/filenameHelper");
 
 const BROWSER_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
@@ -572,13 +573,31 @@ async function fetchIgViaGalleryDl(url, cookiesPath) {
       return null;
     }
 
-    const downloads = mediaItems.map((item, index) => ({
-      label: mediaItems.length > 1
-        ? `${item.format.toUpperCase()} / SLIDE ${index + 1}`
-        : (item.isVideo ? "MP4 / VIDEO" : "High-Res Photo"),
-      url: item.url,
-      format: item.format
-    }));
+    const caption = postMeta?.description || postMeta?.caption || mediaItems[0]?.meta?.description || "Instagram content";
+    const author = postMeta?.username || postMeta?.owner_username || postMeta?.author?.name || postMeta?.author || mediaItems[0]?.meta?.username || "";
+    const thumbnail = mediaItems[0]?.url || null;
+
+    const downloads = mediaItems.map((item, index) => {
+      const filename = generateMediaFilename({
+        platform: "instagram",
+        author,
+        title: caption,
+        sourceUrl: url,
+        kind: mediaItems.length > 1 ? "slide" : (item.isVideo ? "video" : "photo"),
+        slideIndex: mediaItems.length > 1 ? index + 1 : null,
+        totalSlides: mediaItems.length > 1 ? mediaItems.length : null,
+        format: item.format
+      });
+
+      return {
+        label: mediaItems.length > 1
+          ? `${item.format.toUpperCase()} / SLIDE ${index + 1}`
+          : (item.isVideo ? "MP4 / VIDEO" : "High-Res Photo"),
+        url: item.url,
+        format: item.format,
+        filename
+      };
+    });
 
     let audioStatus = null;
     if (audioUrl) {
@@ -586,10 +605,19 @@ async function fetchIgViaGalleryDl(url, cookiesPath) {
         const audioFile = await getOrCreateMp3FromUrl(`instagram-photo-audio:${audioUrl}`, audioUrl, {
           Referer: "https://www.instagram.com/"
         });
+        const audioFilename = generateMediaFilename({
+          platform: "instagram",
+          author,
+          title: caption,
+          sourceUrl: url,
+          kind: "audio",
+          format: "mp3"
+        });
         downloads.push({
           label: "Audio Only",
-          url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
-          format: "mp3"
+          url: `/api/file?token=${audioFile.token}&kind=audio&download=1&filename=${encodeURIComponent(audioFilename)}`,
+          format: "mp3",
+          filename: audioFilename
         });
         audioStatus = "available";
       } catch (audioError) {
@@ -597,13 +625,11 @@ async function fetchIgViaGalleryDl(url, cookiesPath) {
       }
     }
 
-    const caption = postMeta?.description || postMeta?.caption || "Instagram content";
-    const thumbnail = mediaItems[0]?.url || null;
-
     return {
       platform: "instagram",
       type: downloads.length > 1 ? "carousel" : (mediaItems[0]?.isVideo ? "video" : "photo"),
       title: caption,
+      author,
       thumbnail,
       sourceUrl: url,
       audioStatus,
@@ -655,16 +681,33 @@ async function fetchIgPhoto(url, cookiesPath) {
     throw createServiceError("ERR: Konten tidak dapat diakses atau postingan bersifat privat");
   }
 
-  const downloads = result.items.map((item, index) => ({
-    label: result.items.length > 1 ? `${item.format.toUpperCase()} / SLIDE ${index + 1}` : item.label,
-    url: item.url,
-    format: item.format
-  }));
+  const author = result.author || "";
+  const caption = result.caption || "Instagram content";
+  const downloads = result.items.map((item, index) => {
+    const filename = generateMediaFilename({
+      platform: "instagram",
+      author,
+      title: caption,
+      sourceUrl: url,
+      kind: result.items.length > 1 ? "slide" : "photo",
+      slideIndex: result.items.length > 1 ? index + 1 : null,
+      totalSlides: result.items.length > 1 ? result.items.length : null,
+      format: item.format
+    });
+
+    return {
+      label: result.items.length > 1 ? `${item.format.toUpperCase()} / SLIDE ${index + 1}` : item.label,
+      url: item.url,
+      format: item.format,
+      filename
+    };
+  });
 
   return {
     platform: "instagram",
     type: downloads.length > 1 ? "carousel" : "photo",
-    title: result.caption || "Instagram content",
+    title: caption,
+    author,
     thumbnail: result.thumbnail || downloads[0]?.url || null,
     sourceUrl: url,
     downloads
@@ -686,15 +729,27 @@ async function downloadInstagram(url) {
       throw new Error("No video formats found");
     }
 
+    const author = metadata.uploader || metadata.uploader_id || metadata.channel || "";
+    const title = metadata.title || metadata.description || "Instagram content";
     const videoFile = await downloadWithMerge(url, cookies.path);
     const token = videoFile.token;
     const hasAudio = hasAudioStream(metadata);
     const label = hasAudio ? "MP4 / VIDEO" : "MP4 / VIDEO (NO AUDIO)";
+    const videoFilename = generateMediaFilename({
+      platform: "instagram",
+      author,
+      title,
+      sourceUrl: url,
+      kind: "video",
+      format: "mp4"
+    });
+
     const responseDownloads = [
       {
         label,
-        url: `/api/file?token=${token}&download=1`,
-        format: "mp4"
+        url: `/api/file?token=${token}&download=1&filename=${encodeURIComponent(videoFilename)}`,
+        format: "mp4",
+        filename: videoFilename
       }
     ];
     const audioUrl = extractAudioUrl(metadata);
@@ -705,11 +760,20 @@ async function downloadInstagram(url) {
         const audioFile = await getOrCreateMp3FromUrl(`instagram-audio-url:${audioUrl}`, audioUrl, {
           Referer: "https://www.instagram.com/"
         });
+        const audioFilename = generateMediaFilename({
+          platform: "instagram",
+          author,
+          title,
+          sourceUrl: url,
+          kind: "audio",
+          format: "mp3"
+        });
 
         responseDownloads.push({
           label: "Audio Only",
-          url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
-          format: "mp3"
+          url: `/api/file?token=${audioFile.token}&kind=audio&download=1&filename=${encodeURIComponent(audioFilename)}`,
+          format: "mp3",
+          filename: audioFilename
         });
         audioStatus = "available";
       } catch (audioError) {
@@ -720,7 +784,8 @@ async function downloadInstagram(url) {
     return {
       platform: "instagram",
       type: detectInstagramType(url, metadata),
-      title: metadata.title || metadata.description || "Instagram content",
+      title,
+      author,
       thumbnail: metadata.thumbnail || null,
       sourceUrl: url,
       previewUrl: `/api/file?token=${token}`,
