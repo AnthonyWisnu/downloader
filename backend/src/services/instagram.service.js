@@ -532,6 +532,7 @@ async function fetchIgViaGalleryDl(url, cookiesPath) {
     const raw = await runGalleryDl(args);
     const parsed = JSON.parse(raw);
     let postMeta = null;
+    let audioUrl = null;
     const mediaItems = [];
 
     for (const entry of parsed) {
@@ -541,6 +542,17 @@ async function fetchIgViaGalleryDl(url, cookiesPath) {
       if (type === 2 && data1 && typeof data1 === "object") {
         postMeta = data1;
       } else if (type === 3 && typeof data1 === "string") {
+        const isAudio = Boolean(
+          data2?.audio_url ||
+          data2?.audio_title ||
+          (data2?.width === 0 && data2?.height === 0 && (data2?.extension === "mp4" || data2?.extension === "m4a" || data2?.extension === "mp3"))
+        );
+
+        if (isAudio) {
+          audioUrl = data2?.audio_url || data1;
+          continue;
+        }
+
         const extension = (data2?.extension || "").toLowerCase();
         const isVideo = extension === "mp4" || extension === "mkv" || extension === "webm";
         mediaItems.push({
@@ -564,6 +576,23 @@ async function fetchIgViaGalleryDl(url, cookiesPath) {
       format: item.format
     }));
 
+    let audioStatus = "unavailable";
+    if (audioUrl) {
+      try {
+        const audioFile = await getOrCreateMp3FromUrl(`instagram-photo-audio:${audioUrl}`, audioUrl, {
+          Referer: "https://www.instagram.com/"
+        });
+        downloads.push({
+          label: "Audio Only",
+          url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
+          format: "mp3"
+        });
+        audioStatus = "available";
+      } catch (audioError) {
+        logAudioConvertError(audioError, audioUrl);
+      }
+    }
+
     const caption = postMeta?.description || postMeta?.caption || "Instagram content";
     const thumbnail = mediaItems[0]?.url || null;
 
@@ -573,6 +602,7 @@ async function fetchIgViaGalleryDl(url, cookiesPath) {
       title: caption,
       thumbnail,
       sourceUrl: url,
+      audioStatus,
       downloads
     };
   } catch (err) {

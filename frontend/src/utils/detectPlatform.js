@@ -68,7 +68,9 @@ export function typeLabel(type) {
     story_photo: "STORY PHOTO",
     photo: "PHOTO",
     carousel: "CAROUSEL",
-    image: "IMAGE"
+    image: "IMAGE",
+    mixed: "MIXED MEDIA",
+    community: "COMMUNITY POST"
   };
 
   return labels[type] || "VIDEO";

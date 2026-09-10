@@ -98,7 +98,11 @@ function getRequestHeaders(req, parsedUrl) {
     headers.Referer = "https://www.tiktok.com/";
   }
 
-  if (parsedUrl.hostname.includes("youtube") || parsedUrl.hostname.includes("googlevideo")) {
+  if (
+    parsedUrl.hostname.includes("youtube") ||
+    parsedUrl.hostname.includes("googlevideo") ||
+    parsedUrl.hostname.includes("ggpht.com")
+  ) {
     headers.Referer = "https://www.youtube.com/";
   }
 

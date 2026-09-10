@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const axios = require("axios");
 const { runYtDlp, parseYtDlpJson } = require("../utils/execTool");
 const { createServiceError } = require("../utils/errors");
 const { validateYoutubeCookies } = require("./cookies.service");
@@ -150,13 +151,149 @@ async function downloadYouTubeAudio(url) {
   };
 }
 
+function isYouTubeCommunityUrl(url) {
+  if (!url || typeof url !== "string") return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.includes("/post/") ||
+    lower.includes("/community") ||
+    lower.includes("?lb=") ||
+    lower.includes("&lb=")
+  );
+}
+
+function isCommunityPostError(error) {
+  const raw = [error?.stderr, error?.stdout, error?.message].filter(Boolean).join("\n").toLowerCase();
+  return raw.includes("does not have a") || raw.includes("tab") || raw.includes("no video");
+}
+
+async function extractYouTubeCommunity(url) {
+  const matchLb = url.match(/[?&]lb=([a-zA-Z0-9_-]+)/);
+  const targetUrl = matchLb ? `https://www.youtube.com/post/${matchLb[1]}` : url;
+
+  let response;
+  try {
+    response = await axios.get(targetUrl, {
+      headers: {
+        "User-Agent": BROWSER_USER_AGENT,
+        "Accept-Language": "en-US,en;q=0.9"
+      },
+      timeout: 15000
+    });
+  } catch (err) {
+    if (err.response?.status === 404) {
+      throw createServiceError("Postingan komunitas tidak ditemukan atau telah dihapus", 404);
+    }
+    throw createServiceError("Gagal mengambil data postingan komunitas YouTube");
+  }
+
+  const html = response.data;
+  const match =
+    html.match(/var ytInitialData\s*=\s*({.+?});<\/script>/s) ||
+    html.match(/ytInitialData\s*=\s*({.+?});/s);
+
+  if (!match) {
+    throw createServiceError("Gagal membaca data postingan komunitas YouTube", 502);
+  }
+
+  let data;
+  try {
+    data = JSON.parse(match[1]);
+  } catch {
+    throw createServiceError("Gagal memproses struktur data komunitas YouTube", 502);
+  }
+
+  function findKeys(obj, target) {
+    const results = [];
+    if (obj && typeof obj === "object") {
+      if (Array.isArray(obj)) {
+        for (const item of obj) results.push(...findKeys(item, target));
+      } else {
+        for (const [k, v] of Object.entries(obj)) {
+          if (k === target) results.push(v);
+          else results.push(...findKeys(v, target));
+        }
+      }
+    }
+    return results;
+  }
+
+  const posts = findKeys(data, "backstagePostRenderer");
+  if (posts.length === 0) {
+    throw createServiceError("Postingan komunitas tidak ditemukan atau tidak memiliki konten publik", 404);
+  }
+
+  const post = posts[0];
+  const textRuns = post.contentText?.runs || [];
+  const text = textRuns.map((r) => r.text || "").join("").trim();
+  const authorRuns = post.authorText?.runs || [];
+  const author = authorRuns.map((r) => r.text || "").join("").trim();
+
+  const attachment = post.backstageAttachment || {};
+  const images = [];
+
+  const multi = attachment.postMultiImageRenderer;
+  if (multi && Array.isArray(multi.images)) {
+    for (const item of multi.images) {
+      const thumbs = item.backstageImageRenderer?.image?.thumbnails || [];
+      if (thumbs.length > 0) {
+        const raw = thumbs[thumbs.length - 1].url;
+        images.push(raw.replace(/=s\d+.*$/, "=s0"));
+      }
+    }
+  }
+
+  const single = attachment.backstageImageRenderer;
+  if (single && Array.isArray(single.image?.thumbnails)) {
+    const thumbs = single.image.thumbnails;
+    if (thumbs.length > 0) {
+      const raw = thumbs[thumbs.length - 1].url;
+      images.push(raw.replace(/=s\d+.*$/, "=s0"));
+    }
+  }
+
+  if (images.length === 0) {
+    throw createServiceError("Postingan komunitas ini tidak memiliki gambar atau foto yang dapat diunduh", 404);
+  }
+
+  const title = text || `Postingan Komunitas oleh ${author || "Kreator YouTube"}`;
+  const downloads = images.map((imgUrl, index) => ({
+    label: images.length > 1 ? `Slideshow Image ${index + 1}` : "High-Res Photo",
+    url: imgUrl,
+    format: "jpg"
+  }));
+
+  return {
+    platform: "youtube",
+    type: images.length > 1 ? "slideshow" : "photo",
+    title,
+    author: author || null,
+    thumbnail: images[0],
+    sourceUrl: url,
+    downloads
+  };
+}
+
 function detectYouTubeType(url) {
   return String(url || "").toLowerCase().includes("/shorts/") ? "shorts" : "video";
 }
 
 async function downloadYouTube(url) {
+  if (isYouTubeCommunityUrl(url)) {
+    return await extractYouTubeCommunity(url);
+  }
+
   try {
-    const metadata = await fetchYouTubeMetadata(url);
+    let metadata;
+    try {
+      metadata = await fetchYouTubeMetadata(url);
+    } catch (metaError) {
+      if (isYouTubeCommunityUrl(url) || isCommunityPostError(metaError)) {
+        return await extractYouTubeCommunity(url);
+      }
+      throw metaError;
+    }
+
     const videoFile = await getOrCreateNormalizedVideo({
       sourceKey: `youtube-video:${url}`,
       sourceExtension: "mp4",

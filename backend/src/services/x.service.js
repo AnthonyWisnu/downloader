@@ -256,21 +256,35 @@ async function fetchFromFxTwitter(tweetId) {
 
   if (response.data?.code === 200 && response.data?.tweet) {
     const tweet = response.data.tweet;
-    const mediaList = Array.isArray(tweet.media?.photos)
-      ? tweet.media.photos
-      : Array.isArray(tweet.media?.all)
-        ? tweet.media.all.filter((m) => m.type === "photo")
-        : [];
+    const mediaAll = Array.isArray(tweet.media?.all)
+      ? tweet.media.all
+      : [
+          ...(Array.isArray(tweet.media?.videos) ? tweet.media.videos : []),
+          ...(Array.isArray(tweet.media?.photos) ? tweet.media.photos : [])
+        ];
 
-    const images = mediaList
-      .map((item) => toOriginalTwitterImageUrl(item.url))
-      .filter(Boolean);
+    const photos = [];
+    const videos = [];
 
-    if (images.length > 0) {
+    for (const item of mediaAll) {
+      if (item.type === "photo") {
+        photos.push(toOriginalTwitterImageUrl(item.url));
+      } else if (item.type === "video" || item.type === "gif") {
+        videos.push({
+          url: item.url,
+          thumbnail: item.thumbnail_url || null,
+          type: item.type,
+          duration: item.duration || null
+        });
+      }
+    }
+
+    if (photos.length > 0 || videos.length > 0) {
       return {
         title: tweet.text || `Tweet by ${tweet.author?.name || "X user"}`,
         author: tweet.author?.name ? `${tweet.author.name} (@${tweet.author.screen_name})` : null,
-        images
+        photos,
+        videos
       };
     }
   }
@@ -288,16 +302,29 @@ async function fetchFromVxTwitter(tweetId) {
   });
 
   if (response.data && Array.isArray(response.data.mediaURLs)) {
-    const images = response.data.mediaURLs
-      .filter((u) => typeof u === "string" && !u.endsWith(".mp4"))
-      .map(toOriginalTwitterImageUrl)
-      .filter(Boolean);
+    const photos = [];
+    const videos = [];
 
-    if (images.length > 0) {
+    for (const u of response.data.mediaURLs) {
+      if (typeof u === "string") {
+        if (u.endsWith(".mp4")) {
+          videos.push({
+            url: u,
+            thumbnail: null,
+            type: "video"
+          });
+        } else {
+          photos.push(toOriginalTwitterImageUrl(u));
+        }
+      }
+    }
+
+    if (photos.length > 0 || videos.length > 0) {
       return {
         title: response.data.text || `Tweet by ${response.data.user_name || "X user"}`,
         author: response.data.user_name ? `${response.data.user_name} (@${response.data.user_screen_name})` : null,
-        images
+        photos,
+        videos
       };
     }
   }
@@ -318,7 +345,7 @@ async function fetchXTweetPhotos(url) {
     // fallback ke provider alternatif
   }
 
-  if (!result || result.images.length === 0) {
+  if (!result || (!result.photos?.length && !result.videos?.length)) {
     try {
       result = await fetchFromVxTwitter(tweetId);
     } catch {
@@ -326,19 +353,34 @@ async function fetchXTweetPhotos(url) {
     }
   }
 
-  if (!result || result.images.length === 0) {
+  if (!result || (!result.photos?.length && !result.videos?.length)) {
     throw createServiceError("Tweet ini tidak memiliki foto atau media yang dapat diunduh", 404);
   }
 
-  const downloads = result.images.map((imageUrl, index) => ({
-    label: result.images.length > 1 ? `Slideshow Image ${index + 1}` : "High-Res Photo",
-    url: imageUrl,
-    format: "jpg"
-  }));
+  const downloads = [];
+  if (result.videos?.length) {
+    result.videos.forEach((v, idx) => {
+      downloads.push({
+        label: result.videos.length > 1 ? `MP4 / VIDEO ${idx + 1}` : "MP4 / VIDEO",
+        url: v.url,
+        format: "mp4"
+      });
+    });
+  }
+
+  if (result.photos?.length) {
+    result.photos.forEach((imageUrl, index) => {
+      downloads.push({
+        label: result.photos.length > 1 ? `Slideshow Image ${index + 1}` : "High-Res Photo",
+        url: imageUrl,
+        format: "jpg"
+      });
+    });
+  }
 
   return {
     platform: "x",
-    type: result.images.length > 1 ? "slideshow" : "photo",
+    type: result.photos?.length > 1 ? "slideshow" : result.videos?.length > 0 ? "video" : "photo",
     title: result.title,
     author: result.author,
     thumbnail: downloads[0]?.url || null,
@@ -349,8 +391,134 @@ async function fetchXTweetPhotos(url) {
 
 async function downloadX(url) {
   try {
-    let metadata = null;
+    const tweetId = extractTweetId(url);
+    let tweetData = null;
 
+    if (tweetId) {
+      try {
+        tweetData = await fetchFromFxTwitter(tweetId);
+      } catch {
+        // fallback
+      }
+
+      if (!tweetData) {
+        try {
+          tweetData = await fetchFromVxTwitter(tweetId);
+        } catch {
+          // fallback
+        }
+      }
+    }
+
+    // Kasus 1: Data media ditemukan via API
+    if (tweetData && (tweetData.photos.length > 0 || tweetData.videos.length > 0)) {
+      const { photos, videos, title, author } = tweetData;
+
+      // Kasus 1A: Hanya Foto / Slideshow (tanpa video)
+      if (videos.length === 0 && photos.length > 0) {
+        const type = photos.length > 1 ? "slideshow" : "photo";
+        const downloads = photos.map((imgUrl, index) => ({
+          label: photos.length > 1 ? `Slideshow Image ${index + 1}` : "High-Res Photo",
+          url: imgUrl,
+          format: "jpg"
+        }));
+
+        return {
+          platform: "x",
+          type,
+          title,
+          author,
+          thumbnail: photos[0],
+          sourceUrl: url,
+          downloads
+        };
+      }
+
+      // Kasus 1B: Mixed Media (Ada Video DAN Foto dalam 1 Tweet)
+      if (photos.length > 0 && videos.length > 0) {
+        const downloads = [];
+        let previewUrl = null;
+
+        try {
+          const videoFile = await getOrCreateNormalizedVideo({
+            sourceKey: `x-video:${url}`,
+            sourceExtension: "mp4",
+            platform: "x",
+            createSource(sourcePath) {
+              return createXSourceVideo(url, sourcePath);
+            }
+          });
+          downloads.push({
+            label: "MP4 / VIDEO",
+            url: `/api/file?token=${videoFile.token}&download=1`,
+            format: "mp4"
+          });
+          previewUrl = `/api/file?token=${videoFile.token}`;
+
+          try {
+            const audioFile = await downloadXAudio(url);
+            downloads.push({
+              label: "Audio Only",
+              url: `/api/file?token=${audioFile.token}&kind=audio&download=1`,
+              format: "mp3"
+            });
+          } catch {
+            // optional audio
+          }
+        } catch {
+          videos.forEach((v, idx) => {
+            downloads.push({
+              label: videos.length > 1 ? `MP4 / VIDEO ${idx + 1}` : "MP4 / VIDEO",
+              url: v.url,
+              format: "mp4"
+            });
+          });
+          previewUrl = videos[0]?.url || null;
+        }
+
+        photos.forEach((imgUrl, idx) => {
+          downloads.push({
+            label: `Slideshow Image ${idx + 1}`,
+            url: imgUrl,
+            format: "jpg"
+          });
+        });
+
+        return {
+          platform: "x",
+          type: "slideshow",
+          title,
+          author,
+          thumbnail: previewUrl ? (videos[0]?.thumbnail || photos[0]) : photos[0],
+          sourceUrl: url,
+          previewUrl,
+          downloads
+        };
+      }
+
+      // Kasus 1C: Multiple Videos (2+ Video tanpa foto)
+      if (videos.length > 1 && photos.length === 0) {
+        const downloads = videos.map((v, idx) => ({
+          label: `MP4 / VIDEO ${idx + 1}`,
+          url: v.url,
+          format: "mp4"
+        }));
+
+        return {
+          platform: "x",
+          type: "video",
+          title,
+          author,
+          thumbnail: videos[0]?.thumbnail || null,
+          sourceUrl: url,
+          previewUrl: videos[0]?.url || null,
+          downloads
+        };
+      }
+    }
+
+    // Kasus 2: Single Video atau fallback yt-dlp
+    let metadata = null;
     try {
       metadata = await fetchXMetadata(url);
     } catch (metaError) {
@@ -365,11 +533,10 @@ async function downloadX(url) {
     const isVideo = hasVideoFormats(metadata);
     const images = extractImageUrls(metadata);
 
-    // Kasus 1: Tweet Foto / Slideshow (tidak ada format video)
     if (!isVideo && images.length > 0) {
       const type = images.length > 1 ? "slideshow" : "photo";
       const downloads = images.map((imageUrl, index) => ({
-        label: `Slideshow Image ${index + 1}`,
+        label: images.length > 1 ? `Slideshow Image ${index + 1}` : "High-Res Photo",
         url: imageUrl,
         format: "jpg"
       }));
@@ -388,21 +555,43 @@ async function downloadX(url) {
       return await fetchXTweetPhotos(url);
     }
 
-    // Kasus 2: Video atau GIF Tweet
+    // Video/GIF Tweet via yt-dlp
     const hasAudio = hasAudioStream(metadata);
     const duration = Number(metadata.duration || 0);
     const isGif = !hasAudio && duration > 0 && duration <= 10;
     const type = isGif ? "gif" : "video";
     const label = isGif ? "MP4 / GIF" : "MP4 / VIDEO";
 
-    const videoFile = await getOrCreateNormalizedVideo({
-      sourceKey: `x-video:${url}`,
-      sourceExtension: "mp4",
-      platform: "x",
-      createSource(sourcePath) {
-        return createXSourceVideo(url, sourcePath);
+    let videoFile = null;
+    try {
+      videoFile = await getOrCreateNormalizedVideo({
+        sourceKey: `x-video:${url}`,
+        sourceExtension: "mp4",
+        platform: "x",
+        createSource(sourcePath) {
+          return createXSourceVideo(url, sourcePath);
+        }
+      });
+    } catch (vErr) {
+      if (tweetData?.videos?.length > 0) {
+        const downloads = tweetData.videos.map((v, idx) => ({
+          label: tweetData.videos.length > 1 ? `MP4 / VIDEO ${idx + 1}` : label,
+          url: v.url,
+          format: "mp4"
+        }));
+
+        return {
+          platform: "x",
+          type,
+          title,
+          thumbnail: tweetData.videos[0]?.thumbnail || thumbnail,
+          sourceUrl: url,
+          previewUrl: tweetData.videos[0]?.url || null,
+          downloads
+        };
       }
-    });
+      throw vErr;
+    }
 
     const downloads = [
       {
@@ -425,9 +614,19 @@ async function downloadX(url) {
       }
     }
 
+    if (images.length > 0) {
+      images.forEach((imgUrl, idx) => {
+        downloads.push({
+          label: `Slideshow Image ${idx + 1}`,
+          url: imgUrl,
+          format: "jpg"
+        });
+      });
+    }
+
     return {
       platform: "x",
-      type,
+      type: images.length > 0 ? "slideshow" : type,
       title,
       thumbnail,
       sourceUrl: url,

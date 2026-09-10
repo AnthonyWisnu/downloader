@@ -5,13 +5,43 @@ import { downloadAllAsZip } from "../utils/mediaBatch";
 function MediaPreview({ adapted }) {
   const [slideIndex, setSlideIndex] = useState(0);
   const [isZipping, setIsZipping] = useState(false);
-  const { hasImageSlideshow, imageDownloads, previewUrl, thumbnail, isPortrait, title } = adapted;
+  const { hasImageSlideshow, imageDownloads, videoDownloads, previewUrl, thumbnail, isPortrait, title } = adapted;
+
+  const hasSlides = hasImageSlideshow && imageDownloads.length > 0;
+  const activeVideoUrl = previewUrl || (videoDownloads && videoDownloads[0]?.streamUrl) || null;
+  const hasVideo = Boolean(activeVideoUrl);
+
+  const [activeTab, setActiveTab] = useState(hasSlides ? "slideshow" : "video");
 
   const handleDownloadAllZip = () => {
     downloadAllAsZip(title, imageDownloads, setIsZipping);
   };
 
-  if (hasImageSlideshow && imageDownloads.length > 0) {
+  const renderTabs = () => {
+    if (!hasSlides || !hasVideo) return null;
+    return (
+      <div className="media-preview-tabs mono">
+        <button
+          type="button"
+          className={`media-preview-tab ${activeTab === "slideshow" ? "active" : ""}`}
+          onClick={() => setActiveTab("slideshow")}
+        >
+          <ImageIcon size={13} strokeWidth={2.5} aria-hidden="true" />
+          <span>SLIDESHOW ({imageDownloads.length})</span>
+        </button>
+        <button
+          type="button"
+          className={`media-preview-tab ${activeTab === "video" ? "active" : ""}`}
+          onClick={() => setActiveTab("video")}
+        >
+          <Play size={13} strokeWidth={2.5} aria-hidden="true" />
+          <span>VIDEO PREVIEW</span>
+        </button>
+      </div>
+    );
+  };
+
+  const renderSlideshow = () => {
     const activeSlide = imageDownloads[slideIndex] || imageDownloads[0];
     const total = imageDownloads.length;
     const canNav = total > 1;
@@ -83,15 +113,15 @@ function MediaPreview({ adapted }) {
         </div>
       </div>
     );
-  }
+  };
 
-  if (previewUrl) {
+  const renderVideo = () => {
     return (
       <div className={`media-preview-container ${isPortrait ? "is-portrait" : ""}`}>
         <div className="media-video-box">
           <video
             className="media-video-element"
-            src={previewUrl}
+            src={activeVideoUrl}
             poster={thumbnail || ""}
             controls
             playsInline
@@ -103,9 +133,9 @@ function MediaPreview({ adapted }) {
         </div>
       </div>
     );
-  }
+  };
 
-  if (thumbnail) {
+  const renderThumbnail = () => {
     return (
       <div className={`media-preview-container ${isPortrait ? "is-portrait" : ""}`}>
         <div className="media-image-box">
@@ -116,11 +146,22 @@ function MediaPreview({ adapted }) {
         </div>
       </div>
     );
-  }
+  };
 
   return (
-    <div className="media-preview-empty mono">
-      <span>NO DIRECT PREVIEW STREAM AVAILABLE</span>
+    <div className="media-preview-wrapper">
+      {renderTabs()}
+      {hasSlides && activeTab === "slideshow"
+        ? renderSlideshow()
+        : hasVideo && (activeTab === "video" || !hasSlides)
+          ? renderVideo()
+          : thumbnail
+            ? renderThumbnail()
+            : (
+              <div className="media-preview-empty mono">
+                <span>NO DIRECT PREVIEW STREAM AVAILABLE</span>
+              </div>
+            )}
     </div>
   );
 }
