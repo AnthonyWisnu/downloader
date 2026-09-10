@@ -1,9 +1,15 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Download, Play, Image as ImageIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Play, Image as ImageIcon, Archive } from "lucide-react";
+import { downloadAllAsZip } from "../utils/mediaBatch";
 
 function MediaPreview({ adapted }) {
   const [slideIndex, setSlideIndex] = useState(0);
-  const { hasImageSlideshow, imageDownloads, previewUrl, thumbnail, isPortrait } = adapted;
+  const [isZipping, setIsZipping] = useState(false);
+  const { hasImageSlideshow, imageDownloads, previewUrl, thumbnail, isPortrait, title } = adapted;
+
+  const handleDownloadAllZip = () => {
+    downloadAllAsZip(title, imageDownloads, setIsZipping);
+  };
 
   if (hasImageSlideshow && imageDownloads.length > 0) {
     const activeSlide = imageDownloads[slideIndex] || imageDownloads[0];
@@ -49,16 +55,32 @@ function MediaPreview({ adapted }) {
           </div>
         </div>
 
-        <a
-          className="media-slide-download-btn btn btn-block mono"
-          href={activeSlide.directUrl}
-          target="_blank"
-          rel="noreferrer"
-          download
-        >
-          <Download size={14} strokeWidth={2.5} aria-hidden="true" />
-          <span>DOWNLOAD SLIDE [{slideIndex + 1}]</span>
-        </a>
+        <div className="media-slideshow-actions">
+          <a
+            className="media-slide-download-btn btn btn-block mono"
+            href={activeSlide.directUrl}
+            target="_blank"
+            rel="noreferrer"
+            download
+          >
+            <Download size={14} strokeWidth={2.5} aria-hidden="true" />
+            <span>DOWNLOAD SLIDE [{slideIndex + 1}]</span>
+          </a>
+
+          {total > 1 ? (
+            <button
+              type="button"
+              className="media-slide-zip-btn btn btn-block mono"
+              onClick={handleDownloadAllZip}
+              disabled={isZipping}
+            >
+              <Archive size={14} strokeWidth={2.5} aria-hidden="true" />
+              <span>
+                {isZipping ? "PACKAGING ZIP..." : `DOWNLOAD ALL (${total} SLIDES ZIP)`}
+              </span>
+            </button>
+          ) : null}
+        </div>
       </div>
     );
   }

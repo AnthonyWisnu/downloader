@@ -288,5 +288,6 @@ async function proxyMedia(req, res) {
 }
 
 module.exports = {
-  proxyMedia
+  proxyMedia,
+  validateMediaUrl
 };

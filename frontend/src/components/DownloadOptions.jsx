@@ -1,8 +1,15 @@
-import { Volume2, VolumeX } from "lucide-react";
+import { useState } from "react";
+import { Volume2, VolumeX, Archive } from "lucide-react";
 import DownloadOptionRow from "./DownloadOptionRow";
+import { downloadAllAsZip } from "../utils/mediaBatch";
 
 function DownloadOptions({ adapted }) {
-  const { videoDownloads, audioDownloads, imageDownloads, audioWarning } = adapted;
+  const [isZipping, setIsZipping] = useState(false);
+  const { videoDownloads, audioDownloads, imageDownloads, audioWarning, title } = adapted;
+
+  const handleDownloadAllZip = () => {
+    downloadAllAsZip(title, imageDownloads, setIsZipping);
+  };
 
   return (
     <div className="download-options-container" aria-label="Opsi Unduhan">
@@ -64,15 +71,40 @@ function DownloadOptions({ adapted }) {
         </div>
       ) : null}
 
-      {imageDownloads.length > 0 && !adapted.hasImageSlideshow ? (
+      {imageDownloads.length > 0 ? (
         <div className="download-group">
           <div className="download-group-header mono">
-            <span className="download-group-tag">[IMAGE ASSETS]</span>
-            <span className="download-group-desc">HIGH-RES JPG</span>
+            <span className="download-group-tag">[IMAGE & SLIDE ASSETS]</span>
+            <span className="download-group-desc">
+              {imageDownloads.length} {imageDownloads.length > 1 ? "SLIDES" : "PHOTO"} / ORIGINAL QUALITY
+            </span>
           </div>
+
+          {imageDownloads.length > 1 ? (
+            <div className="download-zip-banner">
+              <button
+                type="button"
+                className="btn btn-block mono download-all-zip-btn"
+                onClick={handleDownloadAllZip}
+                disabled={isZipping}
+              >
+                <Archive size={16} strokeWidth={2.5} aria-hidden="true" />
+                <span>
+                  {isZipping ? "PACKAGING ALL SLIDES (ZIP)..." : `DOWNLOAD ALL (${imageDownloads.length} SLIDES ZIP)`}
+                </span>
+              </button>
+            </div>
+          ) : null}
+
           <div className="download-group-list">
-            {imageDownloads.map((item) => (
-              <DownloadOptionRow key={item.id} item={item} />
+            {imageDownloads.map((item, index) => (
+              <DownloadOptionRow
+                key={item.id}
+                item={{
+                  ...item,
+                  label: item.label || `Slide ${index + 1}`
+                }}
+              />
             ))}
           </div>
         </div>

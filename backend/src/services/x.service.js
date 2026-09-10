@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const axios = require("axios");
 const { runYtDlp, parseYtDlpJson } = require("../utils/execTool");
 const { createServiceError } = require("../utils/errors");
 const { validateXCookies } = require("./cookies.service");
@@ -37,6 +38,26 @@ function normalizeXError(error) {
   }
 
   return createServiceError("Gagal memproses URL X (Twitter)");
+}
+
+function isNoVideoError(error) {
+  const raw = [error?.stderr, error?.stdout, error?.message, error?.rawStderr]
+    .filter(Boolean)
+    .join("\n")
+    .toLowerCase();
+
+  return (
+    raw.includes("no video formats found") ||
+    raw.includes("no video could be found") ||
+    raw.includes("no video") ||
+    raw.includes("belum terinstall") ||
+    error?.code === "ENOENT"
+  );
+}
+
+function extractTweetId(url) {
+  const match = String(url || "").match(/(?:status|statuses)\/(\d+)/i);
+  return match ? match[1] : null;
 }
 
 function getCookieArgs() {
@@ -225,9 +246,120 @@ async function downloadXAudio(url) {
   };
 }
 
+async function fetchFromFxTwitter(tweetId) {
+  const response = await axios.get(`https://api.fxtwitter.com/i/status/${tweetId}`, {
+    headers: {
+      "User-Agent": BROWSER_USER_AGENT
+    },
+    timeout: 12000
+  });
+
+  if (response.data?.code === 200 && response.data?.tweet) {
+    const tweet = response.data.tweet;
+    const mediaList = Array.isArray(tweet.media?.photos)
+      ? tweet.media.photos
+      : Array.isArray(tweet.media?.all)
+        ? tweet.media.all.filter((m) => m.type === "photo")
+        : [];
+
+    const images = mediaList
+      .map((item) => toOriginalTwitterImageUrl(item.url))
+      .filter(Boolean);
+
+    if (images.length > 0) {
+      return {
+        title: tweet.text || `Tweet by ${tweet.author?.name || "X user"}`,
+        author: tweet.author?.name ? `${tweet.author.name} (@${tweet.author.screen_name})` : null,
+        images
+      };
+    }
+  }
+
+  return null;
+}
+
+async function fetchFromVxTwitter(tweetId) {
+  const response = await axios.get(`https://api.vxtwitter.com/i/status/${tweetId}`, {
+    headers: {
+      "User-Agent": BROWSER_USER_AGENT
+    },
+    timeout: 12000,
+    validateStatus: (status) => status === 200
+  });
+
+  if (response.data && Array.isArray(response.data.mediaURLs)) {
+    const images = response.data.mediaURLs
+      .filter((u) => typeof u === "string" && !u.endsWith(".mp4"))
+      .map(toOriginalTwitterImageUrl)
+      .filter(Boolean);
+
+    if (images.length > 0) {
+      return {
+        title: response.data.text || `Tweet by ${response.data.user_name || "X user"}`,
+        author: response.data.user_name ? `${response.data.user_name} (@${response.data.user_screen_name})` : null,
+        images
+      };
+    }
+  }
+
+  return null;
+}
+
+async function fetchXTweetPhotos(url) {
+  const tweetId = extractTweetId(url);
+  if (!tweetId) {
+    throw createServiceError("Gagal mendeteksi ID Tweet dari URL yang diberikan", 400);
+  }
+
+  let result = null;
+  try {
+    result = await fetchFromFxTwitter(tweetId);
+  } catch {
+    // fallback ke provider alternatif
+  }
+
+  if (!result || result.images.length === 0) {
+    try {
+      result = await fetchFromVxTwitter(tweetId);
+    } catch {
+      // ignore
+    }
+  }
+
+  if (!result || result.images.length === 0) {
+    throw createServiceError("Tweet ini tidak memiliki foto atau media yang dapat diunduh", 404);
+  }
+
+  const downloads = result.images.map((imageUrl, index) => ({
+    label: result.images.length > 1 ? `Slideshow Image ${index + 1}` : "High-Res Photo",
+    url: imageUrl,
+    format: "jpg"
+  }));
+
+  return {
+    platform: "x",
+    type: result.images.length > 1 ? "slideshow" : "photo",
+    title: result.title,
+    author: result.author,
+    thumbnail: downloads[0]?.url || null,
+    sourceUrl: url,
+    downloads
+  };
+}
+
 async function downloadX(url) {
   try {
-    const metadata = await fetchXMetadata(url);
+    let metadata = null;
+
+    try {
+      metadata = await fetchXMetadata(url);
+    } catch (metaError) {
+      if (isNoVideoError(metaError)) {
+        return await fetchXTweetPhotos(url);
+      }
+      throw metaError;
+    }
+
     const title = metadata.title || metadata.description || "X post";
     const thumbnail = metadata.thumbnail || null;
     const isVideo = hasVideoFormats(metadata);
@@ -250,6 +382,10 @@ async function downloadX(url) {
         sourceUrl: url,
         downloads
       };
+    }
+
+    if (!isVideo && images.length === 0) {
+      return await fetchXTweetPhotos(url);
     }
 
     // Kasus 2: Video atau GIF Tweet

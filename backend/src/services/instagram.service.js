@@ -1,6 +1,8 @@
 const fs = require("fs");
-const { instagramGetUrl } = require("instagram-url-direct");
 const path = require("path");
+const axios = require("axios");
+const qs = require("qs");
+const { instagramGetUrl } = require("instagram-url-direct");
 const { getOrCreateMp3FromUrl } = require("./audio-cache.service");
 const { validateInstagramCookies } = require("./cookies.service");
 const { getOrCreateNormalizedVideo } = require("./video-cache.service");
@@ -281,37 +283,273 @@ function detectPhotoFormat(url) {
   };
 }
 
-async function fetchIgPhoto(url) {
-  let data;
+function extractInstagramShortcode(url) {
+  const match = String(url || "").match(/\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i);
+  return match ? match[1] : null;
+}
+
+function getInstagramCookieHeader(cookiesPath) {
+  if (!cookiesPath || !fs.existsSync(cookiesPath)) {
+    return { cookieStr: "", csrfToken: "" };
+  }
+
+  const lines = fs.readFileSync(cookiesPath, "utf8").split(/\r?\n/);
+  const pairs = [];
+  let csrfToken = "";
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const parts = trimmed.split("\t");
+    if (parts.length >= 7) {
+      const domain = parts[0];
+      const name = parts[5];
+      const value = parts[6];
+      if (domain.includes("instagram.com")) {
+        pairs.push(`${name}=${value}`);
+        if (name === "csrftoken") csrfToken = value;
+      }
+    }
+  }
+
+  return {
+    cookieStr: pairs.join("; "),
+    csrfToken
+  };
+}
+
+function extractInstagramMediaItems(media) {
+  if (!media) return [];
+
+  // 1. Sidecar / Carousel via GraphQL (edge_sidecar_to_children)
+  if (Array.isArray(media.edge_sidecar_to_children?.edges) && media.edge_sidecar_to_children.edges.length > 0) {
+    return media.edge_sidecar_to_children.edges
+      .map((edge, idx) => {
+        const node = edge.node || {};
+        const isVideo = Boolean(node.is_video);
+        const url = isVideo && node.video_url
+          ? node.video_url
+          : (node.display_url || node.display_resources?.slice(-1)[0]?.src);
+
+        return {
+          url,
+          format: isVideo ? "mp4" : "jpg",
+          label: isVideo ? `Slide Video ${idx + 1}` : `Slide Image ${idx + 1}`,
+          isVideo
+        };
+      })
+      .filter((item) => Boolean(item.url));
+  }
+
+  // 2. Carousel via REST API (carousel_media)
+  if (Array.isArray(media.carousel_media) && media.carousel_media.length > 0) {
+    return media.carousel_media
+      .map((item, idx) => {
+        const isVideo = item.media_type === 2 || Boolean(item.video_versions?.length);
+        const videoUrl = item.video_versions?.[0]?.url;
+        const imageUrl = item.image_versions2?.candidates?.[0]?.url || item.display_url;
+        const url = isVideo && videoUrl ? videoUrl : imageUrl;
+
+        return {
+          url,
+          format: isVideo ? "mp4" : "jpg",
+          label: isVideo ? `Slide Video ${idx + 1}` : `Slide Image ${idx + 1}`,
+          isVideo
+        };
+      })
+      .filter((item) => Boolean(item.url));
+  }
+
+  // 3. Single Item (GraphQL atau REST)
+  const isVideo = Boolean(media.is_video) || media.media_type === 2;
+  const videoUrl = media.video_url || media.video_versions?.[0]?.url;
+  const imageUrl = media.display_url || media.image_versions2?.candidates?.[0]?.url || media.thumbnail_url;
+  const url = isVideo && videoUrl ? videoUrl : imageUrl;
+
+  if (url) {
+    return [
+      {
+        url,
+        format: isVideo ? "mp4" : "jpg",
+        label: isVideo ? "MP4 / VIDEO" : "High-Res Photo",
+        isVideo
+      }
+    ];
+  }
+
+  return [];
+}
+
+async function fetchIgViaGraphQL(shortcode, cookiesPath) {
+  const { cookieStr, csrfToken } = getInstagramCookieHeader(cookiesPath);
+  const BASE_URL = "https://www.instagram.com/graphql/query";
+  const docIds = ["9510064595728286", "8845758582119845"];
+
+  for (const docId of docIds) {
+    try {
+      const dataBody = qs.stringify({
+        variables: JSON.stringify({
+          shortcode,
+          child_comment_count: 3,
+          fetch_comment_count: 40,
+          parent_comment_count: 24,
+          has_threaded_comments: true
+        }),
+        doc_id: docId
+      });
+
+      const headers = {
+        "User-Agent": BROWSER_USER_AGENT,
+        "X-IG-App-ID": "936619743392459",
+        "Content-Type": "application/x-www-form-urlencoded",
+        Referer: "https://www.instagram.com/"
+      };
+
+      if (csrfToken) headers["X-CSRFToken"] = csrfToken;
+      if (cookieStr) headers["Cookie"] = cookieStr;
+
+      const response = await axios.post(BASE_URL, dataBody, {
+        headers,
+        timeout: 15000,
+        validateStatus: (status) => status >= 200 && status < 400
+      });
+
+      const media =
+        response.data?.data?.xdt_shortcode_media ||
+        response.data?.data?.shortcode_media;
+
+      if (media) {
+        const items = extractInstagramMediaItems(media);
+        if (items.length > 0) {
+          const caption =
+            media.edge_media_to_caption?.edges?.[0]?.node?.text ||
+            media.title ||
+            "Instagram content";
+
+          return {
+            items,
+            caption,
+            thumbnail: items[0]?.url || null
+          };
+        }
+      }
+    } catch {
+      // coba docId berikutnya
+    }
+  }
+
+  return null;
+}
+
+async function fetchIgViaRest(shortcode, cookiesPath) {
+  const { cookieStr } = getInstagramCookieHeader(cookiesPath);
+  const targetUrl = `https://www.instagram.com/p/${shortcode}/?__a=1&__d=dis`;
 
   try {
-    data = await instagramGetUrl(url);
-  } catch (error) {
-    throw createServiceError("ERR: Konten tidak dapat diakses atau tidak didukung");
-  }
+    const headers = {
+      "User-Agent": BROWSER_USER_AGENT,
+      "X-IG-App-ID": "936619743392459",
+      "X-Requested-With": "XMLHttpRequest",
+      Referer: "https://www.instagram.com/"
+    };
 
-  const urls = Array.isArray(data?.url_list) ? data.url_list : [];
-  const downloads = urls
-    .filter(isHttpUrl)
-    .map((mediaUrl, index) => {
-      const media = detectPhotoFormat(mediaUrl);
+    if (cookieStr) headers["Cookie"] = cookieStr;
 
-      return {
-        label: `${media.labelFormat} / ${media.type} ${index + 1}`,
-        url: mediaUrl,
-        format: media.format
-      };
+    const response = await axios.get(targetUrl, {
+      headers,
+      timeout: 15000,
+      validateStatus: (status) => status >= 200 && status < 400
     });
 
-  if (downloads.length === 0) {
+    const data = response.data;
+    const media =
+      data?.graphql?.shortcode_media ||
+      data?.items?.[0] ||
+      data;
+
+    const items = extractInstagramMediaItems(media);
+    if (items.length > 0) {
+      const caption =
+        media.edge_media_to_caption?.edges?.[0]?.node?.text ||
+        media.caption?.text ||
+        media.title ||
+        "Instagram content";
+
+      return {
+        items,
+        caption,
+        thumbnail: items[0]?.url || null
+      };
+    }
+  } catch {
+    // fallback
+  }
+
+  return null;
+}
+
+async function fetchIgViaLegacy(url) {
+  try {
+    const data = await instagramGetUrl(url);
+    const urls = Array.isArray(data?.url_list) ? data.url_list : [];
+    const validUrls = urls.filter(isHttpUrl);
+
+    if (validUrls.length > 0) {
+      const items = validUrls.map((mediaUrl, idx) => {
+        const isVideo = mediaUrl.toLowerCase().includes(".mp4");
+        return {
+          url: mediaUrl,
+          format: isVideo ? "mp4" : "jpg",
+          label: isVideo ? `Slide Video ${idx + 1}` : `Slide Image ${idx + 1}`,
+          isVideo
+        };
+      });
+
+      return {
+        items,
+        caption: data?.post_info?.caption || "Instagram content",
+        thumbnail: data?.media_details?.[0]?.thumbnail || validUrls[0]
+      };
+    }
+  } catch {
+    // ignore
+  }
+
+  return null;
+}
+
+async function fetchIgPhoto(url, cookiesPath) {
+  const shortcode = extractInstagramShortcode(url);
+
+  let result = null;
+
+  if (shortcode) {
+    result = await fetchIgViaGraphQL(shortcode, cookiesPath);
+
+    if (!result || result.items.length === 0) {
+      result = await fetchIgViaRest(shortcode, cookiesPath);
+    }
+  }
+
+  if (!result || result.items.length === 0) {
+    result = await fetchIgViaLegacy(url);
+  }
+
+  if (!result || result.items.length === 0) {
     throw createServiceError("ERR: Konten tidak dapat diakses atau tidak didukung");
   }
+
+  const downloads = result.items.map((item, index) => ({
+    label: result.items.length > 1 ? `${item.format.toUpperCase()} / SLIDE ${index + 1}` : item.label,
+    url: item.url,
+    format: item.format
+  }));
 
   return {
     platform: "instagram",
     type: downloads.length > 1 ? "carousel" : "photo",
-    title: data?.post_info?.caption || "Instagram content",
-    thumbnail: data?.media_details?.[0]?.thumbnail || data?.media_details?.[0]?.url || null,
+    title: result.caption || "Instagram content",
+    thumbnail: result.thumbnail || downloads[0]?.url || null,
     sourceUrl: url,
     downloads
   };
@@ -374,9 +612,9 @@ async function downloadInstagram(url) {
       downloads: responseDownloads
     };
   } catch (error) {
-    if (isNoVideoFormatsError(error)) {
+    if (isNoVideoFormatsError(error) || error?.code === "ENOENT" || String(error?.message || "").includes("belum terinstall")) {
       logYtDlpStderr(error);
-      return fetchIgPhoto(url);
+      return fetchIgPhoto(url, cookies.path);
     }
 
     if (error.message?.startsWith("ERR:")) {
