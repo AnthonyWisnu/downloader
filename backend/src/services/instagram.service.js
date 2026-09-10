@@ -190,17 +190,25 @@ function buildYtDlpDownloads(metadata) {
 }
 
 async function fetchYtDlpMetadata(url, cookiesPath) {
-  const output = await runYtDlp([
-    "--cookies",
-    cookiesPath,
+  const baseArgs = [
     "--user-agent",
     BROWSER_USER_AGENT,
     "--dump-json",
     "--no-warnings",
     "--no-playlist",
     url
-  ]);
+  ];
 
+  if (cookiesPath && fs.existsSync(cookiesPath)) {
+    try {
+      const output = await runYtDlp(["--cookies", cookiesPath, ...baseArgs]);
+      return parseYtDlpJson(output);
+    } catch (cookieErr) {
+      logYtDlpStderr(cookieErr);
+    }
+  }
+
+  const output = await runYtDlp(baseArgs);
   return parseYtDlpJson(output);
 }
 
@@ -215,9 +223,7 @@ async function runYtDlpVideoDownload(url, cookiesPath, sourcePath, format) {
     }
   });
 
-  await runYtDlp([
-    "--cookies",
-    cookiesPath,
+  const baseArgs = [
     "--user-agent",
     BROWSER_USER_AGENT,
     "--no-warnings",
@@ -229,7 +235,21 @@ async function runYtDlpVideoDownload(url, cookiesPath, sourcePath, format) {
     "--output",
     outputTemplate,
     url
-  ]);
+  ];
+
+  if (cookiesPath && fs.existsSync(cookiesPath)) {
+    try {
+      await runYtDlp(["--cookies", cookiesPath, ...baseArgs]);
+      const found = candidatePaths.find((candidatePath) =>
+        fs.existsSync(candidatePath) && fs.statSync(candidatePath).size > 0
+      );
+      if (found) return found;
+    } catch (cookieErr) {
+      logYtDlpStderr(cookieErr);
+    }
+  }
+
+  await runYtDlp(baseArgs);
 
   return candidatePaths.find((candidatePath) =>
     fs.existsSync(candidatePath) && fs.statSync(candidatePath).size > 0
@@ -521,16 +541,30 @@ async function fetchIgViaLegacy(url) {
 
 async function fetchIgViaGalleryDl(url, cookiesPath) {
   const cleanUrl = String(url || "").split("?")[0];
-  const args = ["-j"];
+  const baseArgs = ["-j", "--retries", "0"];
 
+  let raw = null;
   if (cookiesPath && fs.existsSync(cookiesPath)) {
-    args.push("--cookies", cookiesPath);
+    try {
+      raw = await runGalleryDl(["--cookies", cookiesPath, ...baseArgs, cleanUrl]);
+      const testParsed = JSON.parse(raw);
+      if (Array.isArray(testParsed) && testParsed.length === 1 && testParsed[0][0] === -1) {
+        raw = null;
+      }
+    } catch {
+      raw = null;
+    }
   }
 
-  args.push(cleanUrl);
+  if (!raw) {
+    try {
+      raw = await runGalleryDl([...baseArgs, cleanUrl]);
+    } catch {
+      return null;
+    }
+  }
 
   try {
-    const raw = await runGalleryDl(args);
     const parsed = JSON.parse(raw);
     let postMeta = null;
     let audioUrl = null;
@@ -539,6 +573,7 @@ async function fetchIgViaGalleryDl(url, cookiesPath) {
     for (const entry of parsed) {
       if (!Array.isArray(entry)) continue;
       const [type, data1, data2] = entry;
+      if (type === -1) continue;
 
       if (type === 2 && data1 && typeof data1 === "object") {
         postMeta = data1;
@@ -715,14 +750,12 @@ async function fetchIgPhoto(url, cookiesPath) {
 }
 
 async function downloadInstagram(url) {
+  const cleanUrl = String(url || "").trim().replace("/reels/", "/reel/");
   const cookies = validateInstagramCookies();
-
-  if (!cookies.ok) {
-    throw createServiceError(`ERR: ${cookies.error}`, 500);
-  }
+  const cookiesPath = cookies.ok ? cookies.path : null;
 
   try {
-    const metadata = await fetchYtDlpMetadata(url, cookies.path);
+    const metadata = await fetchYtDlpMetadata(cleanUrl, cookiesPath);
     const downloads = buildYtDlpDownloads(metadata);
 
     if (downloads.length === 0) {
@@ -731,7 +764,7 @@ async function downloadInstagram(url) {
 
     const author = metadata.uploader || metadata.uploader_id || metadata.channel || "";
     const title = metadata.title || metadata.description || "Instagram content";
-    const videoFile = await downloadWithMerge(url, cookies.path);
+    const videoFile = await downloadWithMerge(cleanUrl, cookiesPath);
     const token = videoFile.token;
     const hasAudio = hasAudioStream(metadata);
     const label = hasAudio ? "MP4 / VIDEO" : "MP4 / VIDEO (NO AUDIO)";
@@ -739,7 +772,7 @@ async function downloadInstagram(url) {
       platform: "instagram",
       author,
       title,
-      sourceUrl: url,
+      sourceUrl: cleanUrl,
       kind: "video",
       format: "mp4"
     });
@@ -764,7 +797,7 @@ async function downloadInstagram(url) {
           platform: "instagram",
           author,
           title,
-          sourceUrl: url,
+          sourceUrl: cleanUrl,
           kind: "audio",
           format: "mp3"
         });
@@ -783,11 +816,11 @@ async function downloadInstagram(url) {
 
     return {
       platform: "instagram",
-      type: detectInstagramType(url, metadata),
+      type: detectInstagramType(cleanUrl, metadata),
       title,
       author,
       thumbnail: metadata.thumbnail || null,
-      sourceUrl: url,
+      sourceUrl: cleanUrl,
       previewUrl: `/api/file?token=${token}`,
       audioStatus,
       downloads: responseDownloads
@@ -801,7 +834,7 @@ async function downloadInstagram(url) {
 
     // Try extracting photo/carousel via gallery-dl and fallbacks
     try {
-      return await fetchIgPhoto(url, cookies.path);
+      return await fetchIgPhoto(cleanUrl, cookiesPath);
     } catch (photoError) {
       if (photoError.message?.startsWith("ERR:")) {
         throw photoError;
